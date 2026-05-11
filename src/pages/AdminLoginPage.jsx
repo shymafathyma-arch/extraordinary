@@ -21,8 +21,12 @@ const AdminLoginPage = () => {
     
     try {
       // 1. Authenticate with Supabase Auth
-      const { data: { user }, error: loginError } = await login(email, password);
-      if (loginError) throw loginError;
+      const data = await login(email, password);
+      const user = data?.user;
+
+      if (!user) {
+        throw new Error("Login failed: User data missing.");
+      }
 
       // 2. Fetch profile to check role
       const { data: profile, error: profileError } = await supabase
