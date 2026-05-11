@@ -1,0 +1,6165 @@
+================================================================================
+SHAIMA RENT A CAR - COMPLETE PROJECT CODE
+================================================================================
+
+
+
+// FILE: index.html
+--------------------------------------------------------------------------------
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EXTRAORDINARY</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+--------------------------------------------------------------------------------
+
+
+// FILE: package.json
+--------------------------------------------------------------------------------
+{
+  "name": "shaima-project-rent-a-car",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.0",
+    "@supabase/supabase-js": "^2.105.3",
+    "firebase": "^12.12.1",
+    "framer-motion": "^12.38.0",
+    "lenis": "^1.3.23",
+    "lucide-react": "^1.11.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.2",
+    "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "vite": "^8.0.10"
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: vite.config.js
+--------------------------------------------------------------------------------
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+--------------------------------------------------------------------------------
+
+
+// FILE: eslint.config.js
+--------------------------------------------------------------------------------
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+])
+
+--------------------------------------------------------------------------------
+
+
+// FILE: vercel.json
+--------------------------------------------------------------------------------
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/App.jsx
+--------------------------------------------------------------------------------
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Lenis from 'lenis';
+import { AuthProvider } from './context/AuthContext';
+import { DataProvider } from './context/DataContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
+import AuthPage from './pages/AuthPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import Dashboard from './pages/Dashboard';
+import ProfileDashboard from './pages/ProfileDashboard';
+import AdminPage from './pages/AdminPage';
+import ComparisonPage from './pages/ComparisonPage';
+import AIConcierge from './components/AIConcierge';
+
+function App() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // standard easing
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+      infinite: false,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
+  return (
+    <AuthProvider>
+      <DataProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/compare" element={<ComparisonPage />} />
+            <Route 
+              path="/admin/*" 
+              element={
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <ProfileDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/*" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+          <AIConcierge />
+        </Router>
+      </DataProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/App.css
+--------------------------------------------------------------------------------
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/index.css
+--------------------------------------------------------------------------------
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root[data-theme='midnight'] {
+  --bg-dark: #0a0a0a;
+  --bg-card: rgba(25, 25, 25, 0.6);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent-gold: #d4af37;
+  --accent-blue: #00d2ff;
+  --accent-neon: #ff0055;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-bg: rgba(20, 20, 20, 0.4);
+}
+
+:root[data-theme='aurora'] {
+  --bg-dark: #f5f5f7;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --accent-gold: #b69121;
+  --accent-blue: #0071e3;
+  --accent-neon: #ff0055;
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+}
+
+:root {
+  --bg-dark: #0a0a0a;
+  --bg-card: rgba(25, 25, 25, 0.6);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent-gold: #d4af37;
+  --accent-blue: #00d2ff;
+  --accent-neon: #ff0055;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-bg: rgba(20, 20, 20, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Outfit', sans-serif;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(0, 210, 255, 0.03) 0%, transparent 50%);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: all 0.4s ease;
+}
+
+.glass-button:hover::before {
+  left: 100%;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.glass-button.primary {
+  background: var(--accent-gold);
+  color: #000;
+  border: none;
+}
+
+.glass-button.primary:hover {
+  background: #e6c555;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+.glass-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 14px 16px;
+  border-radius: 8px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-input:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.input-group {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.input-group:focus-within {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.input-group .glass-input {
+  background: transparent !important;
+  border: none !important;
+  padding: 14px 16px 14px 44px !important;
+  width: 100%;
+  color: white;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent-gold);
+  opacity: 0.8;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Typography */
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/main.jsx
+--------------------------------------------------------------------------------
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+import { ThemeProvider } from './context/ThemeContext';
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </StrictMode>,
+);
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/supabaseClient.js
+--------------------------------------------------------------------------------
+import { createClient } from '@supabase/supabase-js';
+
+// Replace these with your actual Supabase project URL and Anon Key
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+
+export const isSupabaseConfigured = supabaseUrl !== 'YOUR_SUPABASE_URL' && supabaseUrl.startsWith('http');
+
+if (!isSupabaseConfigured) {
+  console.warn("Supabase is not configured. Using local/demo storage fallbacks.");
+}
+
+export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/context/AuthContext.jsx
+--------------------------------------------------------------------------------
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../supabaseClient';
+
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // If not configured, check local storage for demo user
+    if (!isSupabaseConfigured) {
+      const demoUser = localStorage.getItem('demoUser');
+      if (demoUser) {
+        setCurrentUser(JSON.parse(demoUser));
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Handle initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchUserProfile(session.user);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Handle auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchUserProfile(session.user);
+      } else {
+        setCurrentUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserProfile = async (user) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      setCurrentUser({
+        uid: user.id,
+        email: user.email,
+        displayName: data.display_name,
+        role: data.role || 'customer',
+        tier: data.tier || 'VIP',
+        ...data
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      setCurrentUser({ uid: user.id, email: user.email, role: 'customer', tier: 'VIP' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (email, password) => {
+    if (!isSupabaseConfigured) {
+      throw new Error("Supabase is not configured. Please use Demo Mode.");
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  };
+
+  const register = async (email, password, name) => {
+    if (!isSupabaseConfigured) {
+      throw new Error("Supabase is not configured. Please use Demo Mode.");
+    }
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+
+    if (data.user) {
+      // Create user profile in profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{ id: data.user.id, email, display_name: name, role: 'customer', tier: 'VIP' }]);
+      
+      if (profileError) console.error("Error creating profile:", profileError);
+    }
+    return data;
+  };
+
+  const enterDemoMode = (isAdmin = false) => {
+    const demoUser = {
+      uid: 'demo_' + Date.now(),
+      email: isAdmin ? 'admin@demo.com' : 'user@demo.com',
+      displayName: isAdmin ? 'Demo Admin' : 'Demo User',
+      role: isAdmin ? 'admin' : 'customer',
+      tier: 'Black',
+      isDemo: true
+    };
+    setCurrentUser(demoUser);
+    localStorage.setItem('demoUser', JSON.stringify(demoUser));
+  };
+
+  const logout = async () => {
+    if (!isSupabaseConfigured || currentUser?.isDemo) {
+      setCurrentUser(null);
+      localStorage.removeItem('demoUser');
+      return;
+    }
+    await supabase.auth.signOut();
+  };
+
+  const getUsers = async () => {
+    if (!isSupabaseConfigured || currentUser?.isDemo) {
+      return [
+        { uid: 'demo_1', displayName: 'Demo Admin', email: 'admin@demo.com', role: 'admin', tier: 'Black' },
+        { uid: 'demo_2', displayName: 'Demo User', email: 'user@demo.com', role: 'customer', tier: 'VIP' }
+      ];
+    }
+    try {
+      const { data, error } = await supabase.from('profiles').select('*');
+      if (error) throw error;
+      return data.map(p => ({
+        uid: p.id,
+        email: p.email,
+        displayName: p.display_name,
+        role: p.role,
+        tier: p.tier
+      }));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
+  };
+
+  const deleteUser = async (uid) => {
+    if (!isSupabaseConfigured || currentUser?.isDemo) {
+      console.log("Demo: Deleted user", uid);
+      return;
+    }
+    // Deleting from profiles table (auth deletion requires Admin API)
+    await supabase.from('profiles').delete().eq('id', uid);
+  };
+
+  const value = {
+    currentUser,
+    login,
+    register,
+    logout,
+    getUsers,
+    deleteUser,
+    enterDemoMode,
+    isSupabaseConfigured
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+};
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/context/DataContext.jsx
+--------------------------------------------------------------------------------
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../supabaseClient';
+
+const DataContext = createContext();
+
+export const useData = () => useContext(DataContext);
+
+const INITIAL_CARS = [
+  {
+    id: 1,
+    brand: 'Rolls-Royce',
+    model: 'Phantom Series VIII',
+    year: '2024',
+    price: 95000,
+    image: '/cars/phantom.png',
+    type: 'Luxury Sedan',
+    specs: { power: '563 hp', topSpeed: '250 km/h', acceleration: '5.3s' },
+    isExclusive: true,
+    requiredTier: 'Elite'
+  },
+  {
+    id: 2,
+    brand: 'Lamborghini',
+    model: 'Revuelto',
+    year: '2024',
+    price: 125000,
+    image: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&q=80',
+    type: 'Hypercar',
+    specs: { power: '1001 hp', topSpeed: '350 km/h', acceleration: '2.5s' },
+    isExclusive: true,
+    requiredTier: 'Black'
+  },
+  {
+    id: 3,
+    brand: 'Bentley',
+    model: 'Continental GT',
+    year: '2023',
+    price: 75000,
+    image: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?auto=format&fit=crop&q=80',
+    type: 'Grand Tourer',
+    specs: { power: '650 hp', topSpeed: '335 km/h', acceleration: '3.6s' }
+  },
+  {
+    id: 4,
+    brand: 'Mercedes-Maybach',
+    model: 'S-Class',
+    year: '2024',
+    price: 65000,
+    image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&q=80',
+    type: 'Executive',
+    specs: { power: '496 hp', topSpeed: '250 km/h', acceleration: '4.8s' }
+  },
+  {
+    id: 5,
+    brand: 'Porsche',
+    model: '911 GT3 RS',
+    year: '2024',
+    price: 85000,
+    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80',
+    type: 'Track Special',
+    specs: { power: '518 hp', topSpeed: '296 km/h', acceleration: '3.2s' },
+    isExclusive: true,
+    requiredTier: 'Elite'
+  },
+  {
+    id: 6,
+    brand: 'Aston Martin',
+    model: 'DB12',
+    year: '2024',
+    price: 72000,
+    image: 'https://images.unsplash.com/photo-1603577372342-903f74f69139?auto=format&fit=crop&q=80',
+    type: 'Super Tourer',
+    specs: { power: '671 hp', topSpeed: '325 km/h', acceleration: '3.6s' }
+  }
+];
+
+export const CURRENCIES = {
+  USD: { symbol: '$', rate: 1, locale: 'en-US' },
+  EUR: { symbol: '€', rate: 0.92, locale: 'de-DE' },
+  GBP: { symbol: '£', rate: 0.79, locale: 'en-GB' },
+  AED: { symbol: 'د.إ', rate: 3.67, locale: 'ar-AE' },
+  INR: { symbol: '₹', rate: 83, locale: 'en-IN' }
+};
+
+const INITIAL_REVIEWS = [
+  { id: 1, carId: 1, user: 'James W.', rating: 5, comment: 'An absolute dream to drive.' },
+  { id: 2, carId: 2, user: 'Sarah M.', rating: 5, comment: 'Incredible experience, spotless car.' },
+  { id: 3, carId: 3, user: 'Michael T.', rating: 4, comment: 'Very smooth ride, great service.' }
+];
+
+export const DataProvider = ({ children }) => {
+  const [currency, setCurrency] = useState('USD');
+  const [cars, setCars] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+
+  useEffect(() => {
+    const savedCurrency = localStorage.getItem('luxuryCurrency');
+    if (savedCurrency && CURRENCIES[savedCurrency]) {
+      setCurrency(savedCurrency);
+    }
+    // Sync cars
+    const savedCars = localStorage.getItem('luxuryCars_v7');
+    if (savedCars) {
+      setCars(JSON.parse(savedCars));
+    } else {
+      setCars(INITIAL_CARS);
+      localStorage.setItem('luxuryCars_v7', JSON.stringify(INITIAL_CARS));
+    }
+
+    const fetchOrders = async () => {
+      if (!isSupabaseConfigured) {
+        const saved = localStorage.getItem('luxuryOrders');
+        if (saved) setOrders(JSON.parse(saved));
+        return;
+      }
+      try {
+        const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setOrders(data);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
+    fetchOrders();
+
+    const savedWishlist = localStorage.getItem('luxuryWishlist');
+    if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+  }, []);
+
+  const addCar = (car) => {
+    const newCar = { ...car, id: Date.now() };
+    const updated = [newCar, ...cars];
+    setCars(updated);
+    localStorage.setItem('luxuryCars_v7', JSON.stringify(updated));
+  };
+
+  const updateCar = (id, updatedCar) => {
+    const updated = cars.map(c => c.id === id ? { ...c, ...updatedCar } : c);
+    setCars(updated);
+    localStorage.setItem('luxuryCars_v7', JSON.stringify(updated));
+  };
+
+  const deleteCar = (id) => {
+    const updated = cars.filter(c => c.id !== id);
+    setCars(updated);
+    localStorage.setItem('luxuryCars_v7', JSON.stringify(updated));
+  };
+
+  const addOrder = async (order) => {
+    const newOrder = {
+      ...order,
+      status: 'Confirmed',
+      created_at: new Date().toISOString()
+    };
+
+    if (!isSupabaseConfigured) {
+      const orderWithId = { ...newOrder, id: Date.now().toString(36) };
+      setOrders(prev => {
+        const updated = [orderWithId, ...prev];
+        localStorage.setItem('luxuryOrders', JSON.stringify(updated));
+        return updated;
+      });
+
+      // Tier upgrade check for mock data
+      const saved = JSON.parse(localStorage.getItem('luxuryOrders') || '[]');
+      const userOrders = saved.filter(o => o.userEmail === order.userEmail);
+      checkTierUpgrade(order.userEmail, userOrders.length);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.from('orders').insert([newOrder]).select().single();
+      if (error) throw error;
+
+      setOrders(prev => [data, ...prev]);
+
+      // Check for tier upgrade
+      const { count, error: countError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_email', order.userEmail);
+
+      if (!countError) checkTierUpgrade(order.userEmail, count);
+    } catch (error) {
+      console.error("Error adding order:", error);
+    }
+  };
+
+  const checkTierUpgrade = async (email, totalTrips) => {
+    if (!isSupabaseConfigured) {
+      const demoUser = JSON.parse(localStorage.getItem('demoUser') || '{}');
+      if (demoUser.email === email) {
+        let newTier = demoUser.tier || 'VIP';
+        if (totalTrips >= 20) newTier = 'Black';
+        else if (totalTrips >= 10) newTier = 'Elite';
+
+        if (newTier !== demoUser.tier) {
+          demoUser.tier = newTier;
+          localStorage.setItem('demoUser', JSON.stringify(demoUser));
+        }
+      }
+      return;
+    }
+
+    try {
+      let newTier = 'VIP';
+      if (totalTrips >= 20) newTier = 'Black';
+      else if (totalTrips >= 10) newTier = 'Elite';
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ tier: newTier })
+        .eq('email', email);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error upgrading tier:", error);
+    }
+  };
+
+  const cancelOrder = async (id) => {
+    if (!isSupabaseConfigured) {
+      const updated = orders.filter(o => o.id !== id);
+      setOrders(updated);
+      localStorage.setItem('luxuryOrders', JSON.stringify(updated));
+      return;
+    }
+    try {
+      const { error } = await supabase.from('orders').delete().eq('id', id);
+      if (error) throw error;
+      setOrders(orders.filter(o => o.id !== id));
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+    }
+  };
+
+  const toggleWishlist = (carId) => {
+    const updated = wishlist.includes(carId)
+      ? wishlist.filter(id => id !== carId)
+      : [...wishlist, carId];
+    setWishlist(updated);
+    localStorage.setItem('luxuryWishlist', JSON.stringify(updated));
+  };
+
+  const changeCurrency = (code) => {
+    setCurrency(code);
+    localStorage.setItem('luxuryCurrency', code);
+  };
+
+  const formatPrice = (price) => {
+    const currencyData = CURRENCIES[currency] || CURRENCIES['USD'];
+    // Assuming base price in INITIAL_CARS is in USD (e.g. 95000 for Rolls-Royce). 
+    // If the original price was INR, we would divide. But looking at 95000, it's USD.
+    const convertedPrice = price * currencyData.rate;
+    return new Intl.NumberFormat(currencyData.locale, {
+      style: 'currency',
+      currency: currency,
+      maximumFractionDigits: 0
+    }).format(convertedPrice);
+  };
+
+  const getInsights = (userEmail) => {
+    const userOrders = orders.filter(o => o.userEmail === userEmail);
+    const totalSpent = userOrders.reduce((sum, o) => sum + (o.totalPrice || o.price || 0), 0);
+    const favoriteBrand = userOrders.length > 0
+      ? userOrders[0].carModel.split(' ')[0]
+      : 'None';
+
+    return {
+      totalTrips: userOrders.length,
+      totalSpent,
+      favoriteBrand
+    };
+  };
+
+  const getOccasionSuggestions = (occasionId) => {
+    switch (occasionId) {
+      case 'wedding': return cars.filter(c => c.brand === 'Rolls-Royce' || c.brand === 'Bentley');
+      case 'business': return cars.filter(c => c.type === 'Executive' || c.brand === 'Mercedes-Maybach');
+      case 'leisure': return cars.filter(c => c.type === 'Grand Tourer' || c.type === 'Luxury Sedan');
+      default: return [];
+    }
+  };
+
+  return (
+    <DataContext.Provider value={{
+      currency,
+      currencies: CURRENCIES,
+      changeCurrency,
+      cars,
+      orders,
+      wishlist,
+      reviews,
+      addCar,
+      updateCar,
+      deleteCar,
+      addOrder,
+      cancelOrder,
+      toggleWishlist,
+      formatPrice,
+      getInsights,
+      getOccasionSuggestions
+    }}>
+      {children}
+    </DataContext.Provider>
+  );
+};
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/context/ThemeContext.jsx
+--------------------------------------------------------------------------------
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const ThemeContext = createContext();
+
+export const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState(localStorage.getItem('luxuryTheme') || 'midnight');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('luxuryTheme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'midnight' ? 'aurora' : 'midnight');
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => useContext(ThemeContext);
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/ProtectedRoute.jsx
+--------------------------------------------------------------------------------
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export const ProtectedRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/Navbar.jsx
+--------------------------------------------------------------------------------
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { LogOut, User, Menu, X, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { useData } from '../context/DataContext';
+import './Navbar.css';
+
+const Navbar = () => {
+  const { currentUser, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { currency, currencies, changeCurrency } = useData();
+  const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <nav className={`navbar ${scrolled ? 'scrolled glass-panel' : ''}`}>
+      <div className="navbar-container">
+        <div className="logo text-gradient-gold">EXTRAORDINARY</div>
+        
+        <div className="nav-links desktop-only">
+          <a href="#fleet" className="nav-link">Fleet</a>
+          <a href="#about" className="nav-link">About</a>
+          <a href="#locations" className="nav-link">Locations</a>
+          <button onClick={() => navigate('/compare')} className="nav-link-btn">Compare</button>
+          {currentUser?.role === 'admin' && (
+            <button onClick={() => navigate('/admin')} className="admin-link-nav">
+              <ShieldCheck size={16} /> Admin Panel
+            </button>
+          )}
+        </div>
+
+        <div className="nav-actions desktop-only">
+          <div className="user-profile" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
+            <User size={18} />
+            <span>{currentUser?.displayName || 'Guest'}</span>
+            {currentUser?.tier && (
+              <span className={`tier-badge tier-${currentUser.tier.toLowerCase()}`}>
+                {currentUser.tier}
+              </span>
+            )}
+          </div>
+          <button onClick={logout} className="logout-btn">
+            <LogOut size={18} />
+          </button>
+          <button onClick={toggleTheme} className="theme-toggle-nav">
+            {theme === 'midnight' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          
+          <div className="currency-selector glass-panel">
+            <select value={currency} onChange={(e) => changeCurrency(e.target.value)}>
+              {Object.keys(currencies).map(code => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <button 
+          className="mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X /> : <Menu />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <motion.div 
+          className="mobile-menu glass-panel"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <a href="#fleet" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Fleet</a>
+          <button onClick={() => { navigate('/compare'); setMobileMenuOpen(false); }} className="nav-link-btn">Compare</button>
+          <a href="#about" className="nav-link" onClick={() => setMobileMenuOpen(false)}>About</a>
+          <div className="divider"></div>
+          <div className="mobile-actions">
+            <button onClick={toggleTheme} className="theme-toggle-nav">
+              {theme === 'midnight' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <select value={currency} onChange={(e) => changeCurrency(e.target.value)} className="mobile-currency">
+              {Object.keys(currencies).map(code => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={logout} className="glass-button primary">Sign Out</button>
+        </motion.div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/Navbar.css
+--------------------------------------------------------------------------------
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 1.5rem 0;
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  padding: 1rem 0;
+  border-radius: 0;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-gold);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link:hover {
+  color: var(--accent-gold);
+}
+
+.nav-link-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.nav-link-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-gold);
+  transition: width 0.3s ease;
+}
+
+.nav-link-btn:hover::after {
+  width: 100%;
+}
+
+.nav-link-btn:hover {
+  color: var(--accent-gold);
+}
+
+.admin-link-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 0, 85, 0.1);
+  border: 1px solid rgba(255, 0, 85, 0.3);
+  color: var(--accent-neon);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 1rem;
+}
+
+.admin-link-nav:hover {
+  background: var(--accent-neon);
+  color: white;
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.logout-btn:hover {
+  color: var(--accent-neon);
+}
+
+.theme-toggle-nav {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--accent-gold);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-nav:hover {
+  background: rgba(212, 175, 55, 0.1);
+  transform: rotate(15deg);
+}
+
+.currency-selector {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 20px;
+}
+
+.currency-selector select {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+
+.currency-selector select option {
+  background: var(--bg-dark);
+  color: white;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  position: absolute;
+  top: 80px;
+  left: 2rem;
+  right: 2rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 100;
+}
+
+.nav-link-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mobile-currency {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: 8px;
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .mobile-menu {
+    display: flex;
+  }
+}
+
+/* Tier Badges */
+.tier-badge {
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.tier-vip {
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+}
+
+.tier-elite {
+  background: rgba(0, 243, 255, 0.2);
+  color: var(--accent-neon);
+  border: 1px solid var(--accent-neon);
+}
+
+.tier-black {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid #555;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/Hero.jsx
+--------------------------------------------------------------------------------
+import React, { useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Environment, MeshDistortMaterial, Sphere } from '@react-three/drei';
+import { ChevronRight } from 'lucide-react';
+import './Hero.css';
+
+const AnimatedSphere = () => {
+  const sphereRef = useRef();
+
+  useFrame((state) => {
+    if (sphereRef.current) {
+      sphereRef.current.rotation.x = state.clock.getElapsedTime() * 0.2;
+      sphereRef.current.rotation.y = state.clock.getElapsedTime() * 0.3;
+    }
+  });
+
+  return (
+    <Sphere ref={sphereRef} args={[1, 100, 200]} scale={2.5}>
+      <MeshDistortMaterial
+        color="#101010"
+        attach="material"
+        distort={0.4}
+        speed={1.5}
+        roughness={0.2}
+        metalness={0.8}
+      />
+    </Sphere>
+  );
+};
+
+const Hero = () => {
+  return (
+    <section className="hero-section">
+      <div className="hero-canvas-container">
+        <Canvas>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <Environment preset="city" />
+          <AnimatedSphere />
+        </Canvas>
+      </div>
+      
+      <div className="hero-content container">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.2 }}
+        >
+          <h2 className="hero-subtitle">BEYOND DRIVING</h2>
+          <h1 className="hero-title">
+            DRIVE THE <br />
+            <span className="text-gradient-gold">EXTRAORDINARY</span>
+          </h1>
+          <p className="hero-description">
+            Experience the pinnacle of automotive engineering. 
+            Exclusive access to the world's most luxurious fleet.
+          </p>
+          
+          <div className="hero-actions">
+            <button 
+              className="glass-button primary hero-btn"
+              onClick={() => document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Explore Fleet <ChevronRight size={18} />
+            </button>
+            <button 
+              className="glass-button hero-btn outline"
+              onClick={() => alert('Membership feature is coming soon!')}
+            >
+              View Memberships
+            </button>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="scroll-indicator">
+        <div className="mouse">
+          <div className="wheel"></div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/Hero.css
+--------------------------------------------------------------------------------
+.hero-section {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.hero-canvas-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.6) 50%, transparent 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+}
+
+.hero-subtitle {
+  color: var(--text-secondary);
+  letter-spacing: 5px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hero-title {
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 2.5rem;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.hero-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+}
+
+.hero-btn.outline {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.hero-btn.outline:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: white;
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mouse {
+  width: 26px;
+  height: 42px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  position: relative;
+}
+
+.wheel {
+  width: 4px;
+  height: 8px;
+  background: var(--accent-gold);
+  border-radius: 2px;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scroll 1.5s infinite;
+}
+
+@keyframes scroll {
+  0% { top: 6px; opacity: 1; }
+  100% { top: 20px; opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  
+  .hero-canvas-container::after {
+    background: linear-gradient(0deg, rgba(10,10,10,1) 0%, rgba(10,10,10,0.6) 100%);
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/CarGrid.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Filter, Zap, Settings, Shield, Heart, Search, ArrowUpDown, Flame, Clock, Sparkles, Lock } from 'lucide-react';
+import BookingModal from './BookingModal';
+
+import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
+import './CarGrid.css';
+
+const CATEGORIES = ['All', 'Luxury', 'Sports', 'SUV'];
+
+const CarGrid = () => {
+  const { cars, wishlist, toggleWishlist, formatPrice } = useData();
+  const { currentUser } = useAuth();
+  const [filter, setFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('none');
+  const [selectedCar, setSelectedCar] = useState(null);
+
+
+  const isLocked = (car) => {
+    if (!car.isExclusive) return false;
+    if (!currentUser) return true;
+    if (currentUser.role === 'admin') return false;
+    return car.requiredTier === 'Black' && currentUser.tier !== 'Black';
+  };
+
+  const getUrgencyBadge = (carId) => {
+    const badges = [
+      { text: 'High Demand', icon: <Flame size={12} />, class: 'urgency-high' },
+      { text: 'Recently Booked', icon: <Clock size={12} />, class: 'urgency-recent' },
+      { text: 'Elite Choice', icon: <Sparkles size={12} />, class: 'urgency-elite' }
+    ];
+    // Deterministic random-ish choice based on carId
+    return badges[carId % badges.length];
+  };
+
+  const filteredCars = cars
+    .filter(car => filter === 'All' || car.type === filter)
+    .filter(car => 
+      car.brand.toLowerCase().includes(search.toLowerCase()) || 
+      car.model.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'perf') return parseFloat(a.specs.acceleration) - parseFloat(b.specs.acceleration);
+      return 0;
+    });
+
+  return (
+    <section className="catalog-section" id="fleet">
+      <div className="catalog-header">
+        <div>
+          <h2 className="section-subtitle">THE COLLECTION</h2>
+          <h3 className="section-title">Select Your Vehicle</h3>
+        </div>
+        
+        <div className="filters-container">
+          <div className="search-bar glass-panel">
+            <Search size={18} className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Search by brand or model..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="filters-group">
+            <div className="filters glass-panel">
+              <Filter size={18} className="filter-icon" />
+              {CATEGORIES.map(cat => (
+                <button 
+                  key={cat}
+                  className={`filter-btn ${filter === cat ? 'active' : ''}`}
+                  onClick={() => setFilter(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <div className="sort-box glass-panel">
+              <ArrowUpDown size={18} className="filter-icon" />
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value="none">Sort By</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="perf">Performance (0-100)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <motion.div 
+        layout 
+        className="car-grid"
+      >
+        <AnimatePresence>
+          {filteredCars.map((car, index) => (
+            <motion.div
+              key={car.id}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="car-card glass-panel"
+            >
+              <div className="car-image-container">
+                <img src={car.image} alt={car.model} className="car-image" />
+                <div className="urgency-badge-wrapper">
+                  {getUrgencyBadge(car.id).icon}
+                  <span className={`urgency-badge ${getUrgencyBadge(car.id).class}`}>{getUrgencyBadge(car.id).text}</span>
+                </div>
+                <div className="car-price">
+                  <span className="amount">{formatPrice(car.price)}</span>
+                  <span className="period">/day</span>
+                </div>
+                <button 
+                  className={`wishlist-toggle ${wishlist.includes(car.id) ? 'active' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); toggleWishlist(car.id); }}
+                >
+                  <Heart size={20} fill={wishlist.includes(car.id) ? "var(--accent-gold)" : "none"} />
+                </button>
+              </div>
+              
+              <div className="car-details">
+                <div className="car-brand">{car.brand}</div>
+                <h4 className="car-model">{car.model}</h4>
+                
+                <div className="car-specs">
+                  <div className="spec-item">
+                    <Zap size={16} />
+                    <span>{car.specs.power}</span>
+                  </div>
+                  <div className="spec-item">
+                    <Settings size={16} />
+                    <span>{car.specs.topSpeed}</span>
+                  </div>
+                  <div className="spec-item">
+                    <Shield size={16} />
+                    <span>{car.specs.acceleration}</span>
+                  </div>
+                </div>
+
+                <div className="card-actions">
+                  <button 
+                    className="glass-button primary w-full"
+                    onClick={() => {
+                      if (isLocked(car)) {
+                        alert('This vehicle is exclusive to Black Tier members.');
+                      } else {
+                        setSelectedCar(car);
+                      }
+                    }}
+                    disabled={isLocked(car)}
+                  >
+                    {isLocked(car) ? <><Lock size={16} /> Locked</> : 'Book Now'}
+                  </button>
+
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+
+      {selectedCar && (
+        <BookingModal 
+          car={selectedCar} 
+          isOpen={!!selectedCar} 
+          onClose={() => setSelectedCar(null)} 
+        />
+      )}
+
+    </section>
+  );
+};
+
+export default CarGrid;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/CarGrid.css
+--------------------------------------------------------------------------------
+.catalog-section {
+  padding: 6rem 0;
+}
+
+.catalog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 3rem;
+}
+
+.section-subtitle {
+  color: var(--accent-gold);
+  letter-spacing: 3px;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 16px;
+  border-radius: 30px;
+}
+
+.filters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-bar input {
+  background: transparent;
+  border: none;
+  color: white;
+  width: 100%;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.filters-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.sort-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 30px;
+}
+
+.sort-box select {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  outline: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sort-box select option {
+  background: var(--bg-dark);
+  color: white;
+}
+
+.filter-icon {
+  color: var(--text-secondary);
+  margin-right: 8px;
+}
+
+.filter-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.filter-btn:hover {
+  color: white;
+}
+
+.filter-btn.active {
+  background: var(--accent-gold);
+  color: black;
+}
+
+.car-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.car-card {
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.car-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+.car-image-container {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.car-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.car-card:hover .car-image {
+  transform: scale(1.1);
+}
+
+.car-image-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(0deg, var(--bg-dark) 0%, transparent 100%);
+}
+
+.car-price {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  z-index: 2;
+}
+
+.wishlist-toggle {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+  z-index: 2;
+}
+
+.wishlist-toggle:hover {
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.1);
+  color: white;
+}
+
+.wishlist-toggle.active {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
+.urgency-badge-wrapper {
+  position: absolute;
+  top: 16px;
+  left: 60px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.urgency-high { color: #ff4757; }
+.urgency-recent { color: #2ecc71; }
+.urgency-elite { color: #f1c40f; }
+
+.currency {
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.period {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.car-details {
+  padding: 1.5rem;
+}
+
+.car-brand {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.car-model {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.car-specs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.spec-item svg {
+  color: var(--accent-blue);
+}
+
+.card-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.card-actions button {
+  flex: 1;
+}
+
+.card-actions .secondary {
+  padding: 10px;
+}
+
+@media (max-width: 768px) {
+  .catalog-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/BookingModal.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Calendar, MapPin, CreditCard, User, Phone, Star } from 'lucide-react';
+import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
+import './BookingModal.css';
+
+const BookingModal = ({ car, isOpen, onClose }) => {
+  const { addOrder, reviews, formatPrice } = useData();
+  const { currentUser } = useAuth();
+  const [step, setStep] = useState(0); // Step 0 is Car Preview
+  const [orderDetails, setOrderDetails] = useState({
+    customerName: '',
+    phone: '',
+    date: '',
+    location: '',
+    address: '',
+    duration: 'daily',
+    chauffeur: false,
+    insurance: false,
+    payLater: false
+  });
+  const [paymentDetails, setPaymentDetails] = useState({
+    cardNumber: '',
+    expiry: '',
+    cvc: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const calculateTotal = () => {
+    if (!car.price) return 0;
+    let base = car.price;
+    if (orderDetails.duration === 'hourly') base = Math.floor(car.price / 8);
+    if (orderDetails.duration === 'monthly') base = car.price * 20;
+    
+    if (orderDetails.chauffeur) base += 5000;
+    if (orderDetails.insurance) base += 2000;
+    return base;
+  };
+
+  const handleBookingComplete = () => {
+    const newErrors = {};
+    if (!orderDetails.payLater) {
+      if (!paymentDetails.cardNumber) newErrors.cardNumber = 'Card Number is required';
+      if (!paymentDetails.expiry) newErrors.expiry = 'Expiry is required';
+      if (!paymentDetails.cvc) newErrors.cvc = 'CVC is required';
+      
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    setErrors({});
+    addOrder({
+      carId: car.id,
+      carModel: `${car.brand} ${car.model}`,
+      userEmail: currentUser?.email,
+      price: car.price,
+      totalPrice: calculateTotal(),
+      ...orderDetails
+    });
+    setStep(3);
+  };
+
+  const handleClose = () => {
+    setStep(0);
+    setOrderDetails({ 
+      customerName: '', phone: '', date: '', location: '', address: '', 
+      duration: 'daily', chauffeur: false, insurance: false, payLater: false 
+    });
+    setPaymentDetails({ cardNumber: '', expiry: '', cvc: '' });
+    setErrors({});
+    onClose();
+  };
+
+  if (!isOpen || !car.id) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        className="modal-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div 
+          className="modal-content glass-panel"
+          style={{ maxWidth: '600px' }}
+          initial={{ scale: 0.9, y: 50, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.9, y: 50, opacity: 0 }}
+        >
+          <button className="close-btn" onClick={handleClose}>
+            <X size={24} />
+          </button>
+
+          <div className="modal-header">
+            <h2>{step === 0 ? 'Vehicle Preview' : 'Reserve'} <span className="text-gradient-gold">{car.brand}</span></h2>
+            <p>{car.model}</p>
+          </div>
+
+          <div className="modal-body">
+            {step > 0 && step < 3 && (
+              <div className="step-indicator">
+                <div className={`step ${step >= 1 ? 'active' : ''}`}>1. Details</div>
+                <div className={`step ${step >= 2 ? 'active' : ''}`}>2. Payment</div>
+                <div className={`step ${step >= 3 ? 'active' : ''}`}>3. Confirm</div>
+              </div>
+            )}
+
+            {step === 0 && (
+              <motion.div className="form-step preview-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="preview-image-container">
+                  <img src={car.image} alt={car.model} className="preview-image" />
+                </div>
+                
+                <div className="preview-specs-grid">
+                  <div className="spec-item">
+                    <span className="spec-label">Power</span>
+                    <span className="spec-value">{car.specs?.power || 'N/A'}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-label">Top Speed</span>
+                    <span className="spec-value">{car.specs?.topSpeed || 'N/A'}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-label">0-100 km/h</span>
+                    <span className="spec-value">{car.specs?.acceleration || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="preview-price price-summary">
+                  <p>Daily Rate</p>
+                  <h3>{formatPrice(car.price || 0)} <span className="period">/ day</span></h3>
+                </div>
+
+                <div className="preview-reviews">
+                  <h4>Client Testimonials</h4>
+                  {reviews.filter(r => r.carId === car.id).length > 0 ? (
+                    reviews.filter(r => r.carId === car.id).map(review => (
+                      <div key={review.id} className="mini-review glass-panel">
+                        <div className="review-meta">
+                          <span className="user-name">{review.user}</span>
+                          <div className="stars">
+                            {[...Array(review.rating)].map((_, i) => <Star key={i} size={10} fill="var(--accent-gold)" color="var(--accent-gold)" />)}
+                          </div>
+                        </div>
+                        <p>"{review.comment}"</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="no-reviews">No reviews yet for this vehicle.</p>
+                  )}
+                </div>
+
+                <button 
+                  className="glass-button primary w-full mt-4"
+                  onClick={() => setStep(1)}
+                >
+                  Proceed to Booking
+                </button>
+              </motion.div>
+            )}
+
+            {step === 1 && (
+              <motion.div className="form-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="split-inputs">
+                  <div className="input-wrapper">
+                    <div className={`input-group ${errors.customerName ? 'input-error' : ''}`}>
+                      <User className="input-icon" size={20} />
+                      <input type="text" placeholder="Full Name" className="glass-input" 
+                        value={orderDetails.customerName} onChange={e => {setOrderDetails({...orderDetails, customerName: e.target.value}); setErrors({...errors, customerName: null})}} />
+                    </div>
+                    {errors.customerName && <span className="error-text">{errors.customerName}</span>}
+                  </div>
+                  <div className="input-wrapper">
+                    <div className={`input-group ${errors.phone ? 'input-error' : ''}`}>
+                      <Phone className="input-icon" size={20} />
+                      <input type="tel" placeholder="Phone Number" className="glass-input" 
+                        value={orderDetails.phone} onChange={e => {setOrderDetails({...orderDetails, phone: e.target.value}); setErrors({...errors, phone: null})}} />
+                    </div>
+                    {errors.phone && <span className="error-text">{errors.phone}</span>}
+                  </div>
+                </div>
+
+                <div className="input-wrapper">
+                  <div className={`input-group ${errors.date ? 'input-error' : ''}`}>
+                    <Calendar className="input-icon" size={20} />
+                    <input type="date" className="glass-input" 
+                      value={orderDetails.date} onChange={e => {setOrderDetails({...orderDetails, date: e.target.value}); setErrors({...errors, date: null})}} />
+                  </div>
+                  {errors.date && <span className="error-text">{errors.date}</span>}
+                </div>
+                
+                <div className="input-wrapper">
+                  <div className={`input-group ${errors.location ? 'input-error' : ''}`}>
+                    <MapPin className="input-icon" size={20} />
+                    <select className="glass-input" value={orderDetails.location} onChange={e => {setOrderDetails({...orderDetails, location: e.target.value}); setErrors({...errors, location: null})}}>
+                      <option value="" disabled>Select Location</option>
+                      <option value="Mumbai">Mumbai, MH</option>
+                      <option value="Delhi">New Delhi, DL</option>
+                      <option value="Bangalore">Bangalore, KA</option>
+                      <option value="Hyderabad">Hyderabad, TS</option>
+                    </select>
+                  </div>
+                  {errors.location && <span className="error-text">{errors.location}</span>}
+                </div>
+                
+                <div className="input-group">
+                  <Calendar className="input-icon" size={20} />
+                  <select className="glass-input" value={orderDetails.duration} onChange={e => setOrderDetails({...orderDetails, duration: e.target.value})}>
+                    <option value="hourly">Hourly Rental</option>
+                    <option value="daily">Daily Rental</option>
+                    <option value="monthly">Monthly Subscription</option>
+                  </select>
+                </div>
+
+                <div className="add-ons-container">
+                  <h4 style={{ marginBottom: '10px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Premium Add-ons</h4>
+                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: '8px' }}>
+                    <input type="checkbox" checked={orderDetails.chauffeur} onChange={e => setOrderDetails({...orderDetails, chauffeur: e.target.checked})} />
+                    White-Glove Chauffeur (+₹5,000)
+                  </label>
+                  <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={orderDetails.insurance} onChange={e => setOrderDetails({...orderDetails, insurance: e.target.checked})} />
+                    Elite Protection Insurance (+₹2,000)
+                  </label>
+                </div>
+                
+                {orderDetails.location && (
+                  <motion.div className="input-wrapper" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                    <div className={`input-group ${errors.address ? 'input-error' : ''}`}>
+                      <MapPin className="input-icon" size={20} style={{ alignSelf: 'flex-start', marginTop: '12px' }} />
+                      <textarea 
+                        placeholder="Detailed Delivery Address" 
+                        className="glass-input" 
+                        style={{ minHeight: '80px', resize: 'vertical' }}
+                        value={orderDetails.address} 
+                        onChange={e => {setOrderDetails({...orderDetails, address: e.target.value}); setErrors({...errors, address: null})}} 
+                      />
+                    </div>
+                    {errors.address && <span className="error-text">{errors.address}</span>}
+                  </motion.div>
+                )}
+                
+                <div className="price-summary">
+                  <p>Total Estimated Price</p>
+                  <h3>{formatPrice(calculateTotal())} <span className="period">/ {orderDetails.duration === 'hourly' ? 'hour' : orderDetails.duration === 'monthly' ? 'month' : 'day'}</span></h3>
+                </div>
+
+                <button 
+                  className="glass-button primary w-full mt-4"
+                  disabled={isVerifying}
+                  onClick={() => {
+                    const newErrors = {};
+                    if (!orderDetails.customerName) newErrors.customerName = 'Name is required';
+                    if (!orderDetails.phone) newErrors.phone = 'Phone is required';
+                    if (!orderDetails.date) newErrors.date = 'Date is required';
+                    if (!orderDetails.location) newErrors.location = 'Location is required';
+                    if (orderDetails.location && !orderDetails.address) newErrors.address = 'Detailed address is required';
+                    
+                    if (Object.keys(newErrors).length > 0) {
+                      setErrors(newErrors);
+                    } else {
+                      setErrors({});
+                      setIsVerifying(true);
+                      setTimeout(() => {
+                        setIsVerifying(false);
+                        setStep(2);
+                      }, 2000);
+                    }
+                  }}
+                >
+                  {isVerifying ? 'Verifying Identity...' : 'Continue to Payment'}
+                </button>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div className="form-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                
+                <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input type="radio" checked={!orderDetails.payLater} onChange={() => setOrderDetails({...orderDetails, payLater: false})} />
+                    Pay Now
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginTop: '10px' }}>
+                    <input type="radio" checked={orderDetails.payLater} onChange={() => setOrderDetails({...orderDetails, payLater: true})} />
+                    Reserve Now, Pay Later
+                  </label>
+                </div>
+
+                {!orderDetails.payLater && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                    <div className="input-wrapper" style={{ marginBottom: '1rem' }}>
+                      <div className={`input-group ${errors.cardNumber ? 'input-error' : ''}`}>
+                        <CreditCard className="input-icon" size={20} />
+                        <input type="text" placeholder="Card Number" className="glass-input" 
+                          value={paymentDetails.cardNumber} onChange={e => {setPaymentDetails({...paymentDetails, cardNumber: e.target.value}); setErrors({...errors, cardNumber: null})}} />
+                      </div>
+                      {errors.cardNumber && <span className="error-text">{errors.cardNumber}</span>}
+                    </div>
+                    <div className="split-inputs">
+                      <div className="input-wrapper">
+                        <div className={`input-group ${errors.expiry ? 'input-error' : ''}`}>
+                          <input type="text" placeholder="MM/YY" className="glass-input" 
+                            value={paymentDetails.expiry} onChange={e => {setPaymentDetails({...paymentDetails, expiry: e.target.value}); setErrors({...errors, expiry: null})}} />
+                        </div>
+                        {errors.expiry && <span className="error-text">{errors.expiry}</span>}
+                      </div>
+                      <div className="input-wrapper">
+                        <div className={`input-group ${errors.cvc ? 'input-error' : ''}`}>
+                          <input type="text" placeholder="CVC" className="glass-input" 
+                            value={paymentDetails.cvc} onChange={e => {setPaymentDetails({...paymentDetails, cvc: e.target.value}); setErrors({...errors, cvc: null})}} />
+                        </div>
+                        {errors.cvc && <span className="error-text">{errors.cvc}</span>}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                
+                <div className="modal-actions" style={{ marginTop: '2rem' }}>
+                  <button className="glass-button" onClick={() => setStep(1)}>Back</button>
+                  <button className="glass-button primary" onClick={handleBookingComplete}>Authorize & Book</button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div className="form-step success-step" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="success-icon">
+                  <motion.div 
+                    initial={{ scale: 0 }} 
+                    animate={{ scale: 1 }} 
+                    transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                  >
+                    ✨
+                  </motion.div>
+                </div>
+                <h3>Reservation Confirmed</h3>
+                <p>Your {car.model} is ready for you in {orderDetails.location}.</p>
+                <button className="glass-button w-full mt-4" onClick={handleClose}>
+                  Return to Dashboard
+                </button>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+export default BookingModal;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/BookingModal.css
+--------------------------------------------------------------------------------
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  padding: 2.5rem;
+  background: rgba(20, 20, 20, 0.8);
+}
+
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: var(--accent-neon);
+}
+
+.modal-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.modal-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.step-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  z-index: -1;
+}
+
+.step {
+  background: var(--bg-dark);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s ease;
+}
+
+.step.active {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.form-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.split-inputs {
+  display: flex;
+  gap: 1rem;
+}
+
+.price-summary {
+  background: rgba(0,0,0,0.4);
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.price-summary p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.price-summary h3 {
+  font-size: 2rem;
+  color: var(--accent-gold);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modal-actions button {
+  flex: 1;
+}
+
+.success-step {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+/* Preview Step Styles */
+.preview-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.preview-image-container {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.spec-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.spec-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preview-price {
+  margin: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.preview-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.preview-reviews h4 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.mini-review {
+  padding: 1rem;
+  font-size: 0.85rem;
+  border-radius: 12px;
+}
+
+.review-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--accent-gold);
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.mini-review p {
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.no-reviews {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+
+
+select.glass-input option {
+  background: var(--bg-dark);
+  color: white;
+}
+
+/* Validation Styles */
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.input-error {
+  border: 1px solid rgba(255, 50, 50, 0.5) !important;
+  box-shadow: 0 0 8px rgba(255, 50, 50, 0.2);
+}
+
+.error-text {
+  color: #ff4d4d;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  margin-left: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/ScrollAnimation.jsx
+--------------------------------------------------------------------------------
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import './ScrollAnimation.css';
+
+const FRAME_COUNT = 240;
+const PRELOAD_BATCH = 20;
+
+const ScrollAnimation = () => {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const [images, setImages] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  // Use Framer Motion's useScroll to track scroll progress within this container
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Apply spring physics for ultra-smooth scrubbing
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 50,
+    damping: 20,
+    restDelta: 0.001
+  });
+
+  // Preload images
+  useEffect(() => {
+    const loadedImages = [];
+    let loadedCount = 0;
+
+    const loadBatch = (startIdx) => {
+      for (let i = startIdx; i < Math.min(startIdx + PRELOAD_BATCH, FRAME_COUNT); i++) {
+        const img = new Image();
+        // The images are named ezgif-frame-001.jpg to ezgif-frame-240.jpg
+        const paddedIndex = (i + 1).toString().padStart(3, '0');
+        // Vite requires dynamic assets in public folder or explicitly imported.
+        // Since they are in src/animationcar, we can use new URL to get the path.
+        // Or we can assume they are copied by Vite or we import them dynamically.
+        // A standard Vite pattern for this is import.meta.glob but it's easier to use a static path if we move them to public.
+        // Wait, they are in `src/animationcar`. We can construct the URL using Vite's URL feature:
+        img.src = new URL(`../animationcar/ezgif-frame-${paddedIndex}.jpg`, import.meta.url).href;
+        
+        img.onload = () => {
+          loadedCount++;
+          if (loadedCount === FRAME_COUNT) {
+            setImages(loadedImages);
+            setLoaded(true);
+          } else if (loadedCount % PRELOAD_BATCH === 0) {
+            // Load next batch
+            loadBatch(loadedCount);
+          }
+        };
+        img.onerror = () => {
+          // Fallback if image fails
+          loadedCount++;
+          if (loadedCount === FRAME_COUNT) {
+            setImages(loadedImages);
+            setLoaded(true);
+          }
+        };
+        loadedImages[i] = img;
+      }
+    };
+
+    loadBatch(0);
+  }, []);
+
+  // Update canvas when scroll changes
+  useEffect(() => {
+    if (!loaded || !canvasRef.current || images.length === 0) return;
+
+    const context = canvasRef.current.getContext('2d');
+    const canvas = canvasRef.current;
+
+    // Draw initial frame
+    const drawImage = (img) => {
+      if (!img) return;
+      const canvasWidth = window.innerWidth;
+      const canvasHeight = window.innerHeight;
+      // Calculate aspect ratio to fit cover
+      const scale = Math.max(canvasWidth / img.width, canvasHeight / img.height);
+      const x = (canvasWidth / 2) - (img.width / 2) * scale;
+      const y = (canvasHeight / 2) - (img.height / 2) * scale;
+      
+      // Enhance image drawing quality
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+      context.drawImage(img, x, y, img.width * scale, img.height * scale);
+    };
+
+    drawImage(images[0]);
+
+    // Subscribe to scroll updates using the smoothed progress
+    const unsubscribe = smoothProgress.on("change", (v) => {
+      const frameIndex = Math.min(
+        FRAME_COUNT - 1,
+        Math.floor(v * FRAME_COUNT)
+      );
+      if (images[frameIndex]) {
+        // Request animation frame for smooth drawing
+        requestAnimationFrame(() => drawImage(images[frameIndex]));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [smoothProgress, loaded, images]);
+
+  // Handle window resize for canvas
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        ctx.scale(dpr, dpr);
+        
+        // Redraw current frame if available
+        if (images.length > 0) {
+          const currentProgress = scrollYProgress.get();
+          const frameIndex = Math.min(FRAME_COUNT - 1, Math.floor(currentProgress * FRAME_COUNT));
+          if (images[frameIndex]) {
+            const img = images[frameIndex];
+            const canvasWidth = window.innerWidth;
+            const canvasHeight = window.innerHeight;
+            const scale = Math.max(canvasWidth / img.width, canvasHeight / img.height);
+            const x = (canvasWidth / 2) - (img.width / 2) * scale;
+            const y = (canvasHeight / 2) - (img.height / 2) * scale;
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+          }
+        }
+      }
+    };
+    handleResize(); // initial set
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [images, smoothProgress]);
+
+  // Text animations setup using the smoothed progress
+  // Feature 1: 10% to 30% scroll
+  const opacity1 = useTransform(smoothProgress, [0.05, 0.1, 0.25, 0.3], [0, 1, 1, 0]);
+  const y1 = useTransform(smoothProgress, [0.05, 0.1, 0.25, 0.3], [50, 0, 0, -50]);
+
+  // Feature 2: 40% to 60% scroll
+  const opacity2 = useTransform(smoothProgress, [0.35, 0.4, 0.55, 0.6], [0, 1, 1, 0]);
+  const y2 = useTransform(smoothProgress, [0.35, 0.4, 0.55, 0.6], [50, 0, 0, -50]);
+
+  // Feature 3: 70% to 90% scroll
+  const opacity3 = useTransform(smoothProgress, [0.65, 0.7, 0.85, 0.9], [0, 1, 1, 0]);
+  const y3 = useTransform(smoothProgress, [0.65, 0.7, 0.85, 0.9], [50, 0, 0, -50]);
+
+  return (
+    <div ref={containerRef} className="scroll-container">
+      <div className="sticky-canvas-container">
+        {!loaded && (
+          <div className="loading-overlay">
+            <div className="spinner"></div>
+            <p>Loading Visuals...</p>
+          </div>
+        )}
+        <canvas ref={canvasRef} className="scroll-canvas" />
+        
+        {/* Overlay Texts */}
+        <div className="features-overlay">
+          {/* Feature 1 - Left Side */}
+          <motion.div 
+            className="feature-text feature-left"
+            style={{ opacity: opacity1, y: y1 }}
+          >
+            <h3 className="text-gradient-gold">UNPARALLELED COMFORT</h3>
+            <p>Hand-crafted leather interiors that redefine the meaning of luxury seating. Every stitch tells a story of absolute perfection.</p>
+          </motion.div>
+
+          {/* Feature 2 - Right Side */}
+          <motion.div 
+            className="feature-text feature-right"
+            style={{ opacity: opacity2, y: y2 }}
+          >
+            <h3 className="text-gradient-gold">V12 ENGINE POWER</h3>
+            <p>Feel the raw, unbridled power of a masterfully engineered V12 engine. Silent when cruising, roaring when commanded.</p>
+          </motion.div>
+
+          {/* Feature 3 - Left Side */}
+          <motion.div 
+            className="feature-text feature-left"
+            style={{ opacity: opacity3, y: y3 }}
+          >
+            <h3 className="text-gradient-gold">AERODYNAMIC EXCELLENCE</h3>
+            <p>Sculpted by the wind. Every curve is designed to cut through the air with minimal resistance and maximum stability.</p>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ScrollAnimation;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/ScrollAnimation.css
+--------------------------------------------------------------------------------
+.scroll-container {
+  /* This height determines how long the user scrolls to complete the animation */
+  height: 400vh;
+  position: relative;
+  background-color: #000;
+}
+
+.sticky-canvas-container {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Optional: add a slight dimming filter if texts need more contrast */
+  filter: brightness(0.8);
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  color: var(--accent-gold);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(212, 175, 55, 0.2);
+  border-top-color: var(--accent-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.features-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through to canvas if needed */
+  max-width: 1400px;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.feature-text {
+  position: absolute;
+  top: 40%;
+  max-width: 400px;
+  padding: 2rem;
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  pointer-events: auto; /* Re-enable pointer events for the text box */
+}
+
+.feature-text h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+
+.feature-text p {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.feature-left {
+  left: 5%;
+}
+
+.feature-right {
+  right: 5%;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .feature-text {
+    max-width: 90%;
+    left: 5% !important;
+    right: 5% !important;
+    text-align: left !important;
+    top: 60%; /* Move down so it doesn't cover the car center */
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/AdminRoute.jsx
+--------------------------------------------------------------------------------
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export const AdminRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+
+  if (!currentUser || currentUser.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/Footer.jsx
+--------------------------------------------------------------------------------
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Car, Mail, Phone, MapPin, Globe, MessageCircle } from 'lucide-react';
+import './Footer.css';
+
+const Footer = () => {
+  return (
+    <footer className="footer-section glass-panel" id="about">
+      <div className="footer-content container">
+        <div className="footer-brand">
+          <div className="footer-logo">
+            <Car size={32} color="var(--accent-gold)" />
+            <h2 className="text-gradient-gold">EXTRAORDINARY</h2>
+          </div>
+          <p className="footer-description">
+            Experience the pinnacle of automotive engineering. 
+            Exclusive access to the world's most luxurious fleet across major Indian cities.
+          </p>
+          <div className="social-links">
+            <a href="#" className="social-icon"><Globe size={20} /></a>
+            <a href="#" className="social-icon"><MessageCircle size={20} /></a>
+          </div>
+        </div>
+
+        <div className="footer-links">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="#fleet">Our Fleet</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Membership feature is coming soon!'); }}>Memberships</a></li>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#">Terms & Conditions</a></li>
+          </ul>
+        </div>
+
+        <div className="footer-contact" id="locations">
+          <h3>Contact Us</h3>
+          <ul>
+            <li>
+              <Phone size={16} />
+              <span>Customer Care: +91 1800-123-4567</span>
+            </li>
+            <li>
+              <Mail size={16} />
+              <span>support@extraordinary.in</span>
+            </li>
+            <li>
+              <MapPin size={16} />
+              <span>Headquarters: Bandra Kurla Complex, Mumbai, MH</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <p>&copy; {new Date().getFullYear()} Extraordinary Luxury Rentals. All rights reserved.</p>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/Footer.css
+--------------------------------------------------------------------------------
+.footer-section {
+  padding: 4rem 0 0;
+  margin-top: 4rem;
+  border-radius: 20px 20px 0 0;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 4rem;
+  padding-bottom: 3rem;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.footer-logo h2 {
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+}
+
+.footer-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  max-width: 400px;
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.social-icon:hover {
+  background: var(--accent-gold);
+  color: #000;
+  border-color: var(--accent-gold);
+  transform: translateY(-3px);
+}
+
+.footer-links h3, .footer-contact h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.footer-links ul, .footer-contact ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: var(--accent-gold);
+}
+
+.footer-contact li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.footer-contact li svg {
+  color: var(--accent-gold);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 1.5rem 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/AIConcierge.jsx
+--------------------------------------------------------------------------------
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, X, Send, Sparkles, Map, Calendar, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import './AIConcierge.css';
+
+const AIConcierge = () => {
+  const { currentUser } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { id: 1, role: 'ai', text: `Greetings, ${currentUser?.displayName || 'distinguished guest'}. I am your personal AI Concierge. How may I elevate your experience today?` }
+  ]);
+  const [inputValue, setInputValue] = useState('');
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = () => {
+    if (!inputValue.trim()) return;
+
+    const newMessages = [...messages, { id: Date.now(), role: 'user', text: inputValue }];
+    setMessages(newMessages);
+    setInputValue('');
+
+    // Simulated AI Response
+    setTimeout(() => {
+      let aiResponse = "I'll coordinate that for you immediately. Is there anything else you require?";
+      
+      const lowerInput = inputValue.toLowerCase();
+      if (lowerInput.includes('chauffeur')) {
+        aiResponse = "Excellent choice. I've noted your interest in our white-glove chauffeur service. Our elite drivers are trained in absolute discretion and precision.";
+      } else if (lowerInput.includes('wedding')) {
+        aiResponse = "Congratulations on the occasion. For weddings, I recommend our Rolls-Royce Phantom or a convoy of Mercedes S-Class vehicles. Shall I prepare a custom proposal?";
+      } else if (lowerInput.includes('itinerary')) {
+        aiResponse = "I can certainly plan a scenic drive for you. Would you prefer a mountain pass or a coastal route?";
+      }
+
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: aiResponse }]);
+    }, 1000);
+  };
+
+  const quickActions = [
+    { icon: <Map size={14} />, label: 'Plan Scenic Route' },
+    { icon: <Calendar size={14} />, label: 'Schedule Airport Pickup' },
+    { icon: <ShieldCheck size={14} />, label: 'Upgrade Insurance' }
+  ];
+
+  return (
+    <>
+      <button 
+        className="ai-concierge-trigger glass-panel" 
+        onClick={() => setIsOpen(true)}
+        aria-label="Open AI Concierge"
+      >
+        <Sparkles size={24} className="text-gradient-gold" />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="ai-concierge-chat glass-panel"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+          >
+            <div className="chat-header">
+              <div className="header-info">
+                <Sparkles size={20} className="text-gradient-gold" />
+                <div>
+                  <h4>AI CONCIERGE</h4>
+                  <span className="status">Online • 24/7 Priority</span>
+                </div>
+              </div>
+              <button className="close-chat" onClick={() => setIsOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="chat-messages" ref={scrollRef}>
+              {messages.map(msg => (
+                <div key={msg.id} className={`message ${msg.role}`}>
+                  <div className="message-bubble">
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="chat-footer">
+              <div className="quick-actions">
+                {quickActions.map((action, i) => (
+                  <button key={i} className="action-btn" onClick={() => {
+                    setInputValue(action.label);
+                  }}>
+                    {action.icon} {action.label}
+                  </button>
+                ))}
+              </div>
+              <div className="input-area">
+                <input 
+                  type="text" 
+                  placeholder="Ask your concierge..." 
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                />
+                <button className="send-btn" onClick={handleSend}>
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+export default AIConcierge;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/AIConcierge.css
+--------------------------------------------------------------------------------
+.ai-concierge-trigger {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+}
+
+.ai-concierge-trigger:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+  border-color: var(--accent-gold) !important;
+}
+
+.ai-concierge-chat {
+  position: fixed;
+  bottom: 6.5rem;
+  right: 2rem;
+  width: 380px;
+  height: 550px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.chat-header {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-info h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.header-info .status {
+  font-size: 0.7rem;
+  color: #00ff88;
+  display: block;
+}
+
+.close-chat {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+
+.message {
+  max-width: 80%;
+}
+
+.message.ai {
+  align-self: flex-start;
+}
+
+.message.user {
+  align-self: flex-end;
+}
+
+.message-bubble {
+  padding: 0.8rem 1rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.ai .message-bubble {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-bottom-left-radius: 2px;
+}
+
+.user .message-bubble {
+  background: var(--accent-gold);
+  color: black;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-footer {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quick-actions {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.quick-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.action-btn {
+  white-space: nowrap;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+  background: rgba(255,255,255,0.05);
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.input-area input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.send-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .ai-concierge-chat {
+    width: calc(100vw - 2rem);
+    height: calc(100vh - 8rem);
+    right: 1rem;
+    bottom: 6rem;
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/ReviewModal.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Star, MessageSquare } from 'lucide-react';
+import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
+import './ReviewModal.css';
+
+const ReviewModal = ({ carId, carModel, isOpen, onClose }) => {
+  const { addReview } = useData();
+  const { currentUser } = useAuth();
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [hoveredRating, setHoveredRating] = useState(0);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addReview({
+      carId,
+      user: currentUser?.displayName || 'Anonymous',
+      rating,
+      comment,
+      date: new Date().toISOString()
+    });
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="modal-overlay">
+        <motion.div 
+          className="modal-content glass-panel"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+        >
+          <button className="close-btn" onClick={onClose}><X size={20} /></button>
+          
+          <div className="modal-header">
+            <h3>Share Your <span className="text-gradient-gold">Experience</span></h3>
+            <p>Rating for {carModel}</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="admin-form">
+            <div className="rating-selector">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`star-btn ${ (hoveredRating || rating) >= star ? 'active' : '' }`}
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                  onClick={() => setRating(star)}
+                >
+                  <Star size={32} fill={(hoveredRating || rating) >= star ? 'var(--accent-gold)' : 'none'} />
+                </button>
+              ))}
+            </div>
+
+            <div className="input-wrapper">
+              <label><MessageSquare size={16} /> Testimonial</label>
+              <textarea 
+                className="glass-input" 
+                rows="4" 
+                placeholder="How was your drive?" 
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                required
+              ></textarea>
+            </div>
+
+            <button type="submit" className="glass-button primary w-full">Submit Elite Review</button>
+          </form>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
+export default ReviewModal;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/components/ReviewModal.css
+--------------------------------------------------------------------------------
+.rating-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
+.star-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-btn.active {
+  color: var(--accent-gold);
+}
+
+.input-wrapper label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+textarea.glass-input {
+  resize: none;
+  font-family: inherit;
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/AuthPage.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { Car, Mail, Lock, LogIn, ChevronRight, User } from 'lucide-react';
+import './AuthPage.css'; // We will create this
+
+const AuthPage = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { login, register, enterDemoMode, isFirebaseConfigured } = useAuth();
+  const navigate = useNavigate();
+
+  const handleDemoMode = (isAdmin = false) => {
+    enterDemoMode(isAdmin);
+    navigate('/');
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    try {
+      if (isLogin) {
+        await login(email, password);
+      } else {
+        await register(email, password, name);
+      }
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  return (
+    <div className="auth-container">
+      <div className="auth-background">
+        <div className="gradient-sphere sphere-1"></div>
+        <div className="gradient-sphere sphere-2"></div>
+      </div>
+      
+      <motion.div 
+        className="auth-box glass-panel"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <div className="auth-header">
+          <Car className="brand-icon" size={40} />
+          <h1 className="text-gradient-gold">EXTRAORDINARY</h1>
+          <p className="subtitle">Enter the exclusive fleet.</p>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          {!isLogin && (
+            <div className="input-group">
+              <User className="input-icon" size={20} />
+              <input 
+                type="text" 
+                placeholder="Full Name" 
+                className="glass-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required={!isLogin}
+              />
+            </div>
+          )}
+
+          <div className="input-group">
+            <Mail className="input-icon" size={20} />
+            <input 
+              type="email" 
+              placeholder="Email Address" 
+              className="glass-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <Lock className="input-icon" size={20} />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              className="glass-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="glass-button primary submit-btn" disabled={isLoading}>
+            {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Request Access')}
+            {!isLoading && <ChevronRight size={18} />}
+          </button>
+        </form>
+
+        {!isFirebaseConfigured && (
+          <div className="demo-mode-section">
+            <div className="divider"><span>OR EXPLORE</span></div>
+            <div className="demo-buttons">
+              <button onClick={() => handleDemoMode(false)} className="glass-button secondary w-full">
+                Enter as Demo User
+              </button>
+              <button onClick={() => handleDemoMode(true)} className="glass-button w-full mt-2">
+                Enter as Demo Admin
+              </button>
+            </div>
+            <p className="demo-notice">Firebase is currently using placeholder keys.</p>
+          </div>
+        )}
+
+        <p className="toggle-auth">
+          {isLogin ? "Don't have an account? " : "Already exclusive? "}
+          <span onClick={() => {
+            setIsLogin(!isLogin);
+            setError('');
+          }}>
+            {isLogin ? 'Apply Now' : 'Sign In'}
+          </span>
+        </p>
+      </motion.div>
+    </div>
+  );
+};
+
+export default AuthPage;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/AuthPage.css
+--------------------------------------------------------------------------------
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: var(--bg-dark);
+}
+
+.gradient-sphere {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  animation: float 20s infinite ease-in-out alternate;
+}
+
+.sphere-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--accent-gold);
+  top: -100px;
+  left: -100px;
+}
+
+.sphere-2 {
+  width: 400px;
+  height: 400px;
+  background: var(--accent-blue);
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(100px, 50px) scale(1.2); }
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 440px;
+  padding: 3rem;
+  margin: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.brand-icon {
+  color: var(--accent-gold);
+  margin-bottom: 1rem;
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.input-group input {
+  padding-left: 44px;
+}
+
+.input-group input:focus + .input-icon,
+.input-group input:focus ~ .input-icon {
+  color: var(--accent-gold);
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.divider span {
+  padding: 0 10px;
+}
+.demo-mode-section {
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.demo-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.demo-notice {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 1rem;
+  opacity: 0.7;
+}
+
+
+.social-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.toggle-auth {
+  text-align: center;
+  margin-top: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.toggle-auth span {
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.toggle-auth span:hover {
+  color: #fff;
+}
+
+.error-message {
+  background: rgba(255, 0, 85, 0.1);
+  border: 1px solid var(--accent-neon);
+  color: var(--accent-neon);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.admin-login-box {
+  border-color: rgba(255, 0, 85, 0.3);
+}
+
+.admin-submit:hover {
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/Dashboard.jsx
+--------------------------------------------------------------------------------
+import React from 'react';
+import { motion } from 'framer-motion';
+import Hero from '../components/Hero';
+import ScrollAnimation from '../components/ScrollAnimation';
+import Navbar from '../components/Navbar';
+import CarGrid from '../components/CarGrid';
+import Footer from '../components/Footer';
+
+const Dashboard = () => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="dashboard-container"
+    >
+      <Navbar />
+      <Hero />
+      <ScrollAnimation />
+      <main className="container">
+        <CarGrid />
+      </main>
+      <Footer />
+    </motion.div>
+  );
+};
+
+export default Dashboard;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/AdminPage.jsx
+--------------------------------------------------------------------------------
+import React, { useState, useEffect } from 'react';
+import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
+import { LogOut, Package, Car, Plus, Edit, Trash, Check, Users, BarChart3, TrendingUp, DollarSign } from 'lucide-react';
+import './AdminPage.css';
+
+const AdminPage = () => {
+  const { cars, addCar, updateCar, deleteCar, orders, formatPrice } = useData();
+  const { currentUser, logout, getUsers, deleteUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('bookings');
+  const [users, setUsers] = useState([]);
+  
+  // State for Car Form
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCar, setEditingCar] = useState(null);
+  const [formData, setFormData] = useState({
+    brand: '', model: '', price: '', type: 'Luxury', image: '',
+    specs: { power: '', topSpeed: '', acceleration: '' }
+  });
+
+  const handleOpenForm = (car = null) => {
+    if (car) {
+      setEditingCar(car);
+      setFormData({ ...car });
+    } else {
+      setEditingCar(null);
+      setFormData({
+        brand: '', model: '', price: '', type: 'Luxury', image: '',
+        specs: { power: '', topSpeed: '', acceleration: '' }
+      });
+    }
+    setIsFormOpen(true);
+  };
+
+  const handleSaveCar = (e) => {
+    e.preventDefault();
+    if (editingCar) {
+      updateCar(editingCar.id, formData);
+    } else {
+      addCar(formData);
+    }
+    setIsFormOpen(false);
+  };
+
+  const handleRevokeAccess = (uid) => {
+    if (uid === currentUser.uid) {
+      alert("You cannot revoke your own access.");
+      return;
+    }
+    if (window.confirm("Are you sure you want to revoke access for this user?")) {
+      deleteUser(uid).then(() => {
+        fetchUsers();
+      });
+    }
+  };
+
+  const fetchUsers = async () => {
+    if (activeTab === 'users') {
+      const data = await getUsers();
+      setUsers(data);
+    }
+  };
+
+  // Sync users when tab changes
+  useEffect(() => {
+    fetchUsers();
+  }, [activeTab]);
+
+  return (
+    <div className="admin-container">
+      <aside className="admin-sidebar glass-panel">
+        <div className="admin-logo text-gradient-gold">EXTRAORDINARY <br/><span className="admin-badge">ADMIN</span></div>
+        
+        <nav className="admin-nav">
+          <button 
+            className={`admin-nav-btn ${activeTab === 'bookings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bookings')}
+          >
+            <Package size={20} /> Bookings
+          </button>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'fleet' ? 'active' : ''}`}
+            onClick={() => setActiveTab('fleet')}
+          >
+            <Car size={20} /> Fleet Management
+          </button>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <Users size={20} /> User Management
+          </button>
+          <button 
+            className={`admin-nav-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            <BarChart3 size={20} /> Analytics
+          </button>
+        </nav>
+
+        <button onClick={logout} className="logout-btn admin-logout">
+          <LogOut size={20} /> Sign Out
+        </button>
+      </aside>
+
+      <main className="admin-main">
+        {activeTab === 'bookings' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="admin-header">
+              <h2>Confirmed Bookings</h2>
+            </div>
+            
+            <div className="table-container glass-panel">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer Name</th>
+                    <th>Phone</th>
+                    <th>Car</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.length === 0 ? (
+                    <tr><td colSpan="7" className="text-center">No bookings yet.</td></tr>
+                  ) : (
+                    orders.map(order => (
+                      <tr key={order.id}>
+                        <td>{order.id.slice(0, 8).toUpperCase()}</td>
+                        <td>{order.customerName}</td>
+                        <td>{order.phone}</td>
+                        <td>{order.carModel}</td>
+                        <td><span className="location-badge">{order.location}</span></td>
+                        <td>{order.date}</td>
+                        <td><span className="status-badge success"><Check size={14}/> {order.status}</span></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'fleet' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="admin-header">
+              <h2>Fleet Management</h2>
+              <button className="glass-button primary" onClick={() => handleOpenForm()}>
+                <Plus size={18} /> Add New Car
+              </button>
+            </div>
+
+            <div className="fleet-grid">
+              {(cars || []).map(car => {
+                const carModelName = `${car?.brand || ''} ${car?.model || ''}`.trim();
+                const carBookings = (orders || []).filter(o => o && (o.carModel === carModelName || o.carId === car?.id));
+                const isBooked = carBookings.some(o => o.status === 'Confirmed');
+                
+                return (
+                  <div key={car?.id || Math.random()} className="fleet-card glass-panel">
+                    <div className="fleet-img-container">
+                      <img src={car?.image} alt={car?.model} className="fleet-img" />
+                      <div className={`availability-badge ${isBooked ? 'booked' : 'available'}`}>
+                        {isBooked ? 'Currently Booked' : 'Available'}
+                      </div>
+                    </div>
+                    <div className="fleet-details">
+                      <div className="fleet-header">
+                        <h4>{car?.brand} {car?.model}</h4>
+                        <span className="booking-count-badge" title="Total Bookings">
+                          <Package size={12} /> {carBookings.length}
+                        </span>
+                      </div>
+                      <p className="fleet-price">₹ {(car?.price || 0).toLocaleString('en-IN')} / day</p>
+                      <div className="fleet-actions">
+                        <button className="icon-btn edit" onClick={() => handleOpenForm(car)}><Edit size={16}/></button>
+                        <button className="icon-btn delete" onClick={() => deleteCar(car?.id)}><Trash size={16}/></button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'users' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="admin-header">
+              <h2>User Management</h2>
+            </div>
+            
+            <div className="table-container glass-panel">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Display Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Tier</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.length === 0 ? (
+                    <tr><td colSpan="5" className="text-center">No users found.</td></tr>
+                  ) : (
+                    users.map(user => (
+                      <tr key={user.uid}>
+                        <td>{user.displayName}</td>
+                        <td>{user.email}</td>
+                        <td><span className={`status-badge ${user.role === 'admin' ? 'warning' : ''}`}>{user.role.toUpperCase()}</span></td>
+                        <td><span className={`tier-badge tier-${user.tier?.toLowerCase()}`}>{user.tier}</span></td>
+                        <td>
+                          <button 
+                            className="icon-btn delete" 
+                            title="Revoke Access"
+                            onClick={() => handleRevokeAccess(user.uid)}
+                            disabled={user.uid === currentUser.uid}
+                          >
+                            <Trash size={16}/>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="admin-header">
+              <h2>Performance Analytics</h2>
+            </div>
+
+            <div className="analytics-grid">
+              <div className="stat-card glass-panel">
+                <div className="stat-header">
+                  <DollarSign size={24} color="var(--accent-gold)" />
+                  <span>Total Revenue</span>
+                </div>
+                <h3>{formatPrice(orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? (o.price || 0) : 0), 0))}</h3>
+                <p className="trend positive">+12% from last month</p>
+              </div>
+              <div className="stat-card glass-panel">
+                <div className="stat-header">
+                  <TrendingUp size={24} color="var(--accent-neon)" />
+                  <span>Active Bookings</span>
+                </div>
+                <h3>{orders.filter(o => o.status === 'Confirmed').length}</h3>
+                <p className="trend positive">+5 today</p>
+              </div>
+              <div className="stat-card glass-panel">
+                <div className="stat-header">
+                  <Users size={24} color="var(--accent-blue)" />
+                  <span>Elite Members</span>
+                </div>
+                <h3>{users.length}</h3>
+                <p className="trend">Across 3 tiers</p>
+              </div>
+            </div>
+
+            <div className="charts-container">
+              <div className="chart-box glass-panel">
+                <h3>Revenue Overview</h3>
+                <div className="svg-chart-container">
+                  <svg viewBox="0 0 400 150" className="revenue-chart">
+                    <path 
+                      d="M 0 120 Q 50 110 100 80 T 200 40 T 300 90 T 400 30" 
+                      fill="none" 
+                      stroke="var(--accent-gold)" 
+                      strokeWidth="3"
+                    />
+                    <path 
+                      d="M 0 120 Q 50 110 100 80 T 200 40 T 300 90 T 400 30 V 150 H 0 Z" 
+                      fill="url(#chartGradient)" 
+                      opacity="0.2"
+                    />
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--accent-gold)" />
+                        <stop offset="100%" stopColor="transparent" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </main>
+
+      {/* Car Form Modal */}
+      {isFormOpen && (
+        <div className="modal-overlay">
+          <motion.div className="modal-content glass-panel" initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
+            <h2>{editingCar ? 'Edit Car' : 'Add New Car'}</h2>
+            <form onSubmit={handleSaveCar} className="admin-form">
+              <div className="split-inputs">
+                <input required type="text" placeholder="Brand" className="glass-input" value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} />
+                <input required type="text" placeholder="Model" className="glass-input" value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} />
+              </div>
+              <div className="split-inputs">
+                <input required type="number" placeholder="Price (INR)" className="glass-input" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} />
+                <select className="glass-input" value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
+                  <option value="Luxury">Luxury</option>
+                  <option value="Sports">Sports</option>
+                  <option value="SUV">SUV</option>
+                </select>
+              </div>
+              <input required type="text" placeholder="Image URL" className="glass-input" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} />
+              
+              <h4 className="mt-4">Specifications</h4>
+              <div className="split-inputs">
+                <input required type="text" placeholder="Power (e.g. 500 hp)" className="glass-input" value={formData.specs.power} onChange={e => setFormData({...formData, specs: {...formData.specs, power: e.target.value}})} />
+                <input required type="text" placeholder="Top Speed" className="glass-input" value={formData.specs.topSpeed} onChange={e => setFormData({...formData, specs: {...formData.specs, topSpeed: e.target.value}})} />
+                <input required type="text" placeholder="0-100 km/h" className="glass-input" value={formData.specs.acceleration} onChange={e => setFormData({...formData, specs: {...formData.specs, acceleration: e.target.value}})} />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="glass-button" onClick={() => setIsFormOpen(false)}>Cancel</button>
+                <button type="submit" className="glass-button primary">Save Car</button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminPage;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/AdminPage.css
+--------------------------------------------------------------------------------
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-dark);
+}
+
+.admin-sidebar {
+  width: 280px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+}
+
+.admin-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 3rem;
+  line-height: 1.4;
+}
+
+.admin-badge {
+  font-size: 0.8rem;
+  background: var(--accent-neon);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.admin-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.admin-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.admin-nav-btn.active {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--accent-gold);
+  border-left: 3px solid var(--accent-gold);
+}
+
+.admin-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  color: var(--text-secondary);
+}
+
+.admin-logout:hover {
+  color: var(--accent-neon);
+}
+
+.admin-main {
+  flex: 1;
+  padding: 3rem;
+  overflow-y: auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th, .admin-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.admin-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.success {
+  background: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+}
+
+.location-badge {
+  color: var(--accent-blue);
+  font-weight: 500;
+}
+
+.fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.fleet-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.fleet-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.fleet-details {
+  padding: 1.5rem;
+}
+
+.fleet-price {
+  color: var(--accent-gold);
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+}
+
+.fleet-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.fleet-img-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+}
+
+.availability-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  backdrop-filter: blur(8px);
+}
+
+.availability-badge.available {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.availability-badge.booked {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.fleet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.booking-count-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.icon-btn.edit:hover { background: rgba(0, 210, 255, 0.2); border-color: var(--accent-blue); color: var(--accent-blue); }
+.icon-btn.delete:hover { background: rgba(255, 0, 85, 0.2); border-color: var(--accent-neon); color: var(--accent-neon); }
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Analytics Styles */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.trend {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.trend.positive {
+  color: #2ecc71;
+}
+
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.chart-box {
+  padding: 2rem;
+}
+
+.chart-box h3 {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.svg-chart-container {
+  height: 200px;
+  width: 100%;
+}
+
+.revenue-chart {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/AdminLoginPage.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { ShieldAlert, Mail, Lock, LogIn, ChevronRight } from 'lucide-react';
+import './AuthPage.css';
+
+const AdminLoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const user = await login(email, password);
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        setError('Unauthorized access. Admin credentials required.');
+      }
+    } catch (error) {
+      setError('Invalid admin credentials.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-background">
+        <div className="gradient-sphere sphere-1" style={{ background: 'var(--accent-neon)' }}></div>
+        <div className="gradient-sphere sphere-2" style={{ background: 'var(--accent-gold)' }}></div>
+      </div>
+      
+      <motion.div 
+        className="auth-box glass-panel admin-login-box"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="auth-header">
+          <ShieldAlert className="brand-icon" size={40} color="var(--accent-neon)" />
+          <h1 className="text-gradient-gold">ADMIN ACCESS</h1>
+          <p className="subtitle">Secure portal for fleet management.</p>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="input-group">
+            <Mail className="input-icon" size={20} />
+            <input 
+              type="email" 
+              placeholder="Admin Email" 
+              className="glass-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <Lock className="input-icon" size={20} />
+            <input 
+              type="password" 
+              placeholder="Security Key" 
+              className="glass-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="glass-button primary submit-btn admin-submit" disabled={isLoading}>
+            {isLoading ? 'Verifying...' : 'Authenticate'}
+            {!isLoading && <ChevronRight size={18} />}
+          </button>
+        </form>
+
+        <p className="toggle-auth">
+          Not an admin? <span onClick={() => navigate('/login')}>Customer Login</span>
+        </p>
+      </motion.div>
+    </div>
+  );
+};
+
+export default AdminLoginPage;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/ProfileDashboard.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import BookingModal from '../components/BookingModal';
+import ReviewModal from '../components/ReviewModal';
+import { Calendar, Award, TrendingUp, Sparkles, Map, ChevronRight, Heart, Car, Lock } from 'lucide-react';
+import './ProfileDashboard.css';
+
+const ProfileDashboard = () => {
+  const { currentUser } = useAuth();
+  const { cars, orders, wishlist, toggleWishlist, cancelOrder, formatPrice, getInsights, getOccasionSuggestions } = useData();
+  const [synced, setSynced] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [reviewCar, setReviewCar] = useState(null);
+
+  const isLocked = (car) => {
+    if (!car.isExclusive) return false;
+    if (!currentUser) return true;
+    if (currentUser.role === 'admin') return false;
+    return car.requiredTier === 'Black' && currentUser.tier !== 'Black';
+  };
+
+  const insights = getInsights(currentUser?.email);
+  const userOrders = orders.filter(o => o.userEmail === currentUser?.email);
+
+  const occasions = [
+    { id: 'wedding', title: 'For Your Next Gala', icon: <Sparkles size={18} /> },
+    { id: 'business', title: 'Executive Fleet', icon: <TrendingUp size={18} /> },
+    { id: 'leisure', title: 'Weekend Getaways', icon: <Map size={18} /> }
+  ];
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="profile-page"
+    >
+      <Navbar />
+      
+      <main className="profile-container container">
+        <div className="profile-header">
+          <div>
+            <h1 className="text-gradient-gold">Welcome back, {currentUser?.displayName}</h1>
+            <p className="subtitle">Here is your personalized luxury hub.</p>
+          </div>
+          <div className="tier-display">
+            <span className="tier-label">Current Tier</span>
+            <span className={`tier-badge large tier-${currentUser?.tier?.toLowerCase() || 'vip'}`}>
+              {currentUser?.tier || 'VIP'}
+            </span>
+          </div>
+        </div>
+
+        <div className="dashboard-grid">
+          {/* Insights Panel */}
+          <div className="dashboard-panel glass-panel">
+            <h3><Award size={20} className="panel-icon" /> Your Insights</h3>
+            <div className="insights-stats">
+              <div className="stat-box">
+                <span className="stat-value">{insights.totalTrips}</span>
+                <span className="stat-label">Total Trips</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-value">₹ {(insights.totalSpent || 0).toLocaleString('en-IN')}</span>
+                <span className="stat-label">Lifetime Value</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-value">{insights.favoriteBrand}</span>
+                <span className="stat-label">Top Brand</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tier Progress */}
+          <div className="dashboard-panel glass-panel tier-progress-panel">
+            <h3><TrendingUp size={20} className="panel-icon" /> Tier Progression</h3>
+            <div className="progress-info">
+              <span>{currentUser?.tier || 'VIP'} Member</span>
+              <span>Next: {currentUser?.tier === 'Black' ? 'Max Tier' : currentUser?.tier === 'Elite' ? 'Black Tier' : 'Elite Tier'}</span>
+            </div>
+            <div className="progress-bar-container">
+              <div 
+                className="progress-bar-fill" 
+                style={{ width: `${Math.min(((insights.totalTrips % 10) / 10) * 100 || 10, 100)}%` }}
+              ></div>
+            </div>
+            <p className="progress-status">
+              {currentUser?.tier === 'Black' 
+                ? "You've reached the pinnacle of luxury." 
+                : `${10 - (insights.totalTrips % 10)} more trips to reach the next tier.`}
+            </p>
+          </div>
+
+          {/* Smart Calendar Sync */}
+          <div className="dashboard-panel glass-panel calendar-panel">
+            <h3><Calendar size={20} className="panel-icon" /> Smart Calendar</h3>
+            <p>Sync your calendar to get automatic car recommendations for your upcoming trips and events.</p>
+            <button 
+              className={`glass-button ${synced ? 'synced' : 'primary'}`}
+              onClick={() => setSynced(true)}
+            >
+              {synced ? 'Calendar Synced Successfully' : 'Connect Apple/Google Calendar'}
+            </button>
+          </div>
+        </div>
+
+        {/* Elite Garage (Wishlist) */}
+        <div className="garage-section dashboard-panel glass-panel">
+          <div className="panel-header">
+            <h3><Heart size={20} className="panel-icon" color="var(--accent-gold)" /> Your Elite Garage</h3>
+            <span className="garage-count">{wishlist.length} Vehicles Saved</span>
+          </div>
+          
+          <div className="garage-grid">
+            {wishlist.length > 0 ? (
+              cars.filter(c => wishlist.includes(c.id)).map(car => (
+                <div key={car.id} className="garage-card glass-panel">
+                  <div className="garage-img-wrapper">
+                    <img src={car.image} alt={car.model} />
+                    <button className="remove-garage" onClick={() => toggleWishlist(car.id)} title="Remove from Garage">
+                      <Heart size={16} fill="currentColor" />
+                    </button>
+                  </div>
+                  <div className="garage-info">
+                    <h4>{car.brand}</h4>
+                    <p>{car.model}</p>
+                    <div className="garage-footer">
+                      <span className="price">{formatPrice(car.price)}</span>
+                      <button 
+                        className="book-mini-btn" 
+                        onClick={() => !isLocked(car) && setSelectedCar(car)}
+                        disabled={isLocked(car)}
+                      >
+                        {isLocked(car) ? 'Locked' : 'Reserve'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="empty-garage">
+                <Car size={40} className="empty-icon" />
+                <p>Your garage is empty. Discover and save your next dream ride from the fleet.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* AI Recommendations */}
+        <div className="recommendations-section">
+          <h2 className="section-title">AI-Powered Suggestions</h2>
+          <p className="section-subtitle">Curated specifically for your preferences and upcoming events.</p>
+          
+          {occasions.map(occasion => {
+            const suggestedCars = getOccasionSuggestions(occasion.id);
+            if (suggestedCars.length === 0) return null;
+            
+            return (
+              <div key={occasion.id} className="occasion-row">
+                <h4 className="occasion-title">{occasion.icon} {occasion.title}</h4>
+                <div className="suggested-cars-scroll">
+                  {suggestedCars.map(car => (
+                    <div key={car.id} className="suggested-car-card glass-panel">
+                      <img src={car.image} alt={car.model} />
+                      <div className="suggested-info">
+                        <h5>{car.brand} {car.model}</h5>
+                        <p>{formatPrice(car.price)} / day</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Trip History */}
+        <div className="history-section dashboard-panel glass-panel">
+          <h3>Recent Itineraries</h3>
+          {userOrders.length > 0 ? (
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Location</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userOrders.map(order => (
+                  <tr key={order.id}>
+                    <td>{order.carModel}</td>
+                    <td>{order.location}</td>
+                    <td>{order.date}</td>
+                    <td><span className={`status-badge status-${order.status.toLowerCase()}`}>{order.status}</span></td>
+                    <td>
+                      <div className="action-stack">
+                        {order.status === 'Confirmed' && (
+                          <button 
+                            className="cancel-mini-btn"
+                            onClick={() => window.confirm('Cancel this reservation?') && cancelOrder(order.id)}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        <button 
+                          className="review-mini-btn"
+                          onClick={() => setReviewCar({ id: order.carId, model: order.carModel })}
+                        >
+                          Review
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="no-history">You haven't booked any vehicles yet. Explore our fleet to begin your journey.</p>
+          )}
+        </div>
+      </main>
+
+      {selectedCar && (
+        <BookingModal 
+          car={selectedCar} 
+          isOpen={!!selectedCar} 
+          onClose={() => setSelectedCar(null)} 
+        />
+      )}
+
+      {reviewCar && (
+        <ReviewModal
+          carId={reviewCar.id}
+          carModel={reviewCar.model}
+          isOpen={!!reviewCar}
+          onClose={() => setReviewCar(null)}
+        />
+      )}
+
+      <Footer />
+    </motion.div>
+  );
+};
+
+export default ProfileDashboard;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/ProfileDashboard.css
+--------------------------------------------------------------------------------
+.profile-page {
+  min-height: 100vh;
+  padding-top: 100px;
+}
+
+.profile-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.tier-display {
+  text-align: right;
+}
+
+.tier-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.tier-badge.large {
+  font-size: 1.2rem;
+  padding: 6px 16px;
+  border-radius: 8px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.dashboard-panel {
+  padding: 2rem;
+}
+
+.dashboard-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.panel-icon {
+  color: var(--accent-gold);
+}
+
+.insights-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-neon);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.calendar-panel p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.progress-bar-container {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-neon));
+  box-shadow: 0 0 15px var(--accent-gold);
+  border-radius: 5px;
+  transition: width 1s ease-out;
+}
+
+.progress-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.glass-button.synced {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.3);
+  color: #00ff88;
+}
+
+/* Elite Garage */
+.garage-section {
+  margin-bottom: 4rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.garage-count {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.garage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.garage-card {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.garage-img-wrapper {
+  position: relative;
+  height: 160px;
+}
+
+.garage-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-garage {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--accent-gold);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.remove-garage:hover {
+  background: var(--accent-gold);
+  color: black;
+  transform: scale(1.1);
+}
+
+.garage-info {
+  padding: 1.2rem;
+}
+
+.garage-info h4 {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.garage-info p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.garage-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.garage-footer .price {
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.book-mini-btn {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.book-mini-btn:hover {
+  background: var(--accent-gold);
+  color: black;
+}
+
+.empty-garage {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  opacity: 0.2;
+}
+
+/* AI Recommendations */
+.recommendations-section {
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.occasion-row {
+  margin-bottom: 2rem;
+}
+
+.occasion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+  margin-bottom: 1rem;
+}
+
+.suggested-cars-scroll {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.suggested-cars-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.suggested-cars-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.suggested-cars-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.suggested-car-card {
+  min-width: 300px;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: center;
+  border-radius: 12px;
+}
+
+.suggested-car-card img {
+  width: 100px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.suggested-info h5 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.suggested-info p {
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+}
+
+/* History */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th, .history-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.status-confirmed {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+.status-cancelled {
+  background: rgba(255, 0, 85, 0.1);
+  color: #ff0055;
+}
+
+.cancel-mini-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 0, 85, 0.3);
+  color: #ff0055;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-mini-btn:hover {
+  background: rgba(255, 71, 87, 0.2);
+}
+
+.action-stack {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.review-mini-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--accent-gold);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.review-mini-btn:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--accent-gold);
+}
+
+.no-history {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .tier-display {
+    text-align: left;
+  }
+}
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/ComparisonPage.jsx
+--------------------------------------------------------------------------------
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useData } from '../context/DataContext';
+import { ChevronLeft, Zap, Settings, Shield, Plus, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import './ComparisonPage.css';
+
+const ComparisonPage = () => {
+  const { cars, formatPrice } = useData();
+  const navigate = useNavigate();
+  const [selectedIds, setSelectedIds] = useState([null, null]);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [pickingSlot, setPickingSlot] = useState(null);
+
+  const selectedCars = selectedIds.map(id => id ? cars.find(c => c.id === id) : null);
+
+  const handlePickCar = (carId) => {
+    const newSelected = [...selectedIds];
+    if (pickingSlot !== null) {
+      newSelected[pickingSlot] = carId;
+    }
+    setSelectedIds(newSelected);
+    setIsPickerOpen(false);
+    setPickingSlot(null);
+  };
+
+  const removeCar = (index) => {
+    const newSelected = [...selectedIds];
+    newSelected[index] = null;
+    setSelectedIds(newSelected);
+  };
+
+  const SpecRow = ({ label, icon, val1, val2, unit = "" }) => (
+    <div className="spec-row">
+      <div className="spec-val val-left">{val1}{unit}</div>
+      <div className="spec-label">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <div className="spec-val val-right">{val2}{unit}</div>
+    </div>
+  );
+
+  return (
+    <div className="comparison-page">
+      <Navbar />
+      
+      <main className="container comparison-container">
+        <header className="comparison-header">
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            <ChevronLeft size={20} /> Back
+          </button>
+          <h1 className="text-gradient-gold">Vehicle Comparison</h1>
+          <p className="subtitle">Compare the world's most extraordinary performance specs.</p>
+        </header>
+
+        <div className="comparison-slots">
+          {[0, 1].map(index => {
+            const car = selectedCars[index];
+            return (
+              <div key={index} className={`comparison-slot glass-panel ${!car ? 'empty' : ''}`}>
+                {car ? (
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                    <button className="remove-slot" onClick={() => removeCar(index)}><X size={16} /></button>
+                    <img src={car.image} alt={car.model} className="slot-img" />
+                    <div className="slot-info">
+                      <h3>{car.brand}</h3>
+                      <h4>{car.model}</h4>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <button className="add-car-btn" onClick={() => { setIsPickerOpen(true); setPickingSlot(index); }}>
+                    <Plus size={32} />
+                    <span>Select Vehicle</span>
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {selectedCars[0] && selectedCars[1] && (
+          <motion.div 
+            className="comparison-details glass-panel"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <SpecRow 
+              label="Power" 
+              icon={<Zap size={18} />} 
+              val1={selectedCars[0].specs.power} 
+              val2={selectedCars[1].specs.power} 
+            />
+            <SpecRow 
+              label="Top Speed" 
+              icon={<Settings size={18} />} 
+              val1={selectedCars[0].specs.topSpeed} 
+              val2={selectedCars[1].specs.topSpeed} 
+            />
+            <SpecRow 
+              label="0-100 km/h" 
+              icon={<Shield size={18} />} 
+              val1={selectedCars[0].specs.acceleration} 
+              val2={selectedCars[1].specs.acceleration} 
+            />
+            <SpecRow 
+              label="Daily Rate" 
+              icon={<span>₹</span>} 
+              val1={formatPrice(selectedCars[0].price)} 
+              val2={formatPrice(selectedCars[1].price)} 
+            />
+          </motion.div>
+        )}
+      </main>
+
+      <AnimatePresence>
+        {isPickerOpen && (
+          <div className="picker-overlay">
+            <motion.div 
+              className="picker-modal glass-panel"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+            >
+              <div className="picker-header">
+                <h3>Select Vehicle</h3>
+                <button onClick={() => setIsPickerOpen(false)}><X size={20} /></button>
+              </div>
+              <div className="picker-grid">
+                {cars.map(car => (
+                  <div 
+                    key={car.id} 
+                    className={`picker-card ${selectedIds.includes(car.id) ? 'disabled' : ''}`}
+                    onClick={() => !selectedIds.includes(car.id) && handlePickCar(car.id)}
+                  >
+                    <img src={car.image} alt={car.model} />
+                    <div className="picker-info">
+                      <p>{car.brand}</p>
+                      <strong>{car.model}</strong>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default ComparisonPage;
+
+--------------------------------------------------------------------------------
+
+
+// FILE: src/pages/ComparisonPage.css
+--------------------------------------------------------------------------------
+.comparison-page {
+  min-height: 100vh;
+  padding-top: 100px;
+}
+
+.comparison-container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.comparison-header {
+  text-align: center;
+  margin-bottom: 4rem;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.back-btn:hover {
+  color: var(--accent-gold);
+}
+
+.comparison-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.comparison-slot {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 20px;
+}
+
+.comparison-slot.empty {
+  border: 2px dashed rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.02);
+}
+
+.add-car-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-car-btn:hover {
+  color: var(--accent-gold);
+  transform: scale(1.05);
+}
+
+.slot-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.slot-info {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.slot-info h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.slot-info h4 {
+  font-size: 1.5rem;
+}
+
+.remove-slot {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Comparison Details */
+.comparison-details {
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.spec-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2rem;
+}
+
+.spec-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-gold);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100px;
+}
+
+.spec-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.val-left { text-align: right; }
+.val-right { text-align: left; }
+
+/* Picker Modal */
+.picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.picker-modal {
+  width: 100%;
+  max-width: 800px;
+  max-height: 80vh;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  overflow: hidden;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.picker-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.picker-card:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--accent-gold);
+}
+
+.picker-card.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.picker-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.picker-info {
+  padding: 1rem;
+}
+
+.picker-info p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .comparison-slots {
+    grid-template-columns: 1fr;
+  }
+  
+  .spec-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .val-left, .val-right { text-align: center; }
+  
+  .spec-label { width: auto; order: -1; }
+}
+
+--------------------------------------------------------------------------------

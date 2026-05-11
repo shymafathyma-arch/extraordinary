@@ -1,0 +1,114 @@
+================================================================================
+SHAIMA RENT A CAR - CORE IMPLEMENTATION SNIPPETS
+================================================================================
+
+1. APPLICATION ROUTING (App.jsx)
+--------------------------------------------------------------------------------
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { DataProvider } from './context/DataContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
+
+function App() {
+  return (
+    <AuthProvider>
+      <DataProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/admin/*" element={<AdminRoute><AdminPage /></AdminRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfileDashboard /></ProtectedRoute>} />
+            <Route path="/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          </Routes>
+        </Router>
+      </DataProvider>
+    </AuthProvider>
+  );
+}
+
+2. DATABASE CONNECTION (supabaseClient.js)
+--------------------------------------------------------------------------------
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+3. AUTHENTICATION LOGIC (AuthContext.jsx)
+--------------------------------------------------------------------------------
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  };
+
+  const register = async (email, password, name) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (data.user) {
+      await supabase.from('profiles').insert([{ id: data.user.id, display_name: name }]);
+    }
+    return data;
+  };
+};
+
+4. DATA MANAGEMENT (DataContext.jsx)
+--------------------------------------------------------------------------------
+export const DataProvider = ({ children }) => {
+  const [cars, setCars] = useState([]);
+
+  const fetchCars = async () => {
+    const { data, error } = await supabase
+      .from('cars')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error) setCars(data);
+  };
+
+  const addBooking = async (bookingData) => {
+    const { error } = await supabase.from('bookings').insert([bookingData]);
+    return { error };
+  };
+};
+
+5. ADMIN DASHBOARD (AdminPage.jsx)
+--------------------------------------------------------------------------------
+const AdminPage = () => {
+  const { cars, fetchCars } = useData();
+
+  const handleAddCar = async (newCar) => {
+    const { error } = await supabase.from('cars').insert([newCar]);
+    if (!error) fetchCars();
+  };
+
+  const handleDeleteCar = async (id) => {
+    const { error } = await supabase.from('cars').delete().eq('id', id);
+    if (!error) fetchCars();
+  };
+};
+
+6. CUSTOMER DASHBOARD (Dashboard.jsx)
+--------------------------------------------------------------------------------
+const Dashboard = () => {
+  const { cars } = useData();
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const filteredCars = selectedCategory === 'All' 
+    ? cars 
+    : cars.filter(car => car.category === selectedCategory);
+
+  return (
+    <div className="dashboard">
+      <Hero />
+      <CategoryFilter onSelect={setSelectedCategory} />
+      <div className="car-grid">
+        {filteredCars.map(car => <CarCard key={car.id} car={car} />)}
+      </div>
+    </div>
+  );
+};

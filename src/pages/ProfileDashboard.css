@@ -1,0 +1,413 @@
+.profile-page {
+  min-height: 100vh;
+  padding-top: 100px;
+}
+
+.profile-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.tier-display {
+  text-align: right;
+}
+
+.tier-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.tier-badge.large {
+  font-size: 1.2rem;
+  padding: 6px 16px;
+  border-radius: 8px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.dashboard-panel {
+  padding: 2rem;
+}
+
+.dashboard-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.panel-icon {
+  color: var(--accent-gold);
+}
+
+.insights-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-neon);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.calendar-panel p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.progress-bar-container {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-neon));
+  box-shadow: 0 0 15px var(--accent-gold);
+  border-radius: 5px;
+  transition: width 1s ease-out;
+}
+
+.progress-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.glass-button.synced {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.3);
+  color: #00ff88;
+}
+
+/* Elite Garage */
+.garage-section {
+  margin-bottom: 4rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.garage-count {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.garage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.garage-card {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.garage-img-wrapper {
+  position: relative;
+  height: 160px;
+}
+
+.garage-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-garage {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--accent-gold);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.remove-garage:hover {
+  background: var(--accent-gold);
+  color: black;
+  transform: scale(1.1);
+}
+
+.garage-info {
+  padding: 1.2rem;
+}
+
+.garage-info h4 {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.garage-info p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.garage-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.garage-footer .price {
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.book-mini-btn {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.book-mini-btn:hover {
+  background: var(--accent-gold);
+  color: black;
+}
+
+.empty-garage {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  opacity: 0.2;
+}
+
+/* AI Recommendations */
+.recommendations-section {
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.occasion-row {
+  margin-bottom: 2rem;
+}
+
+.occasion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+  margin-bottom: 1rem;
+}
+
+.suggested-cars-scroll {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.suggested-cars-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.suggested-cars-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.suggested-cars-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.suggested-car-card {
+  min-width: 300px;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: center;
+  border-radius: 12px;
+}
+
+.suggested-car-card img {
+  width: 100px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.suggested-info h5 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.suggested-info p {
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+}
+
+/* History */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th, .history-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.status-confirmed {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+.status-cancelled {
+  background: rgba(255, 0, 85, 0.1);
+  color: #ff0055;
+}
+
+.cancel-mini-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 0, 85, 0.3);
+  color: #ff0055;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-mini-btn:hover {
+  background: rgba(255, 71, 87, 0.2);
+}
+
+.action-stack {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.review-mini-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--accent-gold);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.review-mini-btn:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--accent-gold);
+}
+
+.no-history {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .tier-display {
+    text-align: left;
+  }
+}

@@ -1,0 +1,308 @@
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-dark);
+}
+
+.admin-sidebar {
+  width: 280px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+}
+
+.admin-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 3rem;
+  line-height: 1.4;
+}
+
+.admin-badge {
+  font-size: 0.8rem;
+  background: var(--accent-neon);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.admin-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.admin-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.admin-nav-btn.active {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--accent-gold);
+  border-left: 3px solid var(--accent-gold);
+}
+
+.admin-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  color: var(--text-secondary);
+}
+
+.admin-logout:hover {
+  color: var(--accent-neon);
+}
+
+.admin-main {
+  flex: 1;
+  padding: 3rem;
+  overflow-y: auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th, .admin-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.admin-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.success {
+  background: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+}
+
+.location-badge {
+  color: var(--accent-blue);
+  font-weight: 500;
+}
+
+.fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.fleet-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.fleet-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.fleet-details {
+  padding: 1.5rem;
+}
+
+.fleet-price {
+  color: var(--accent-gold);
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+}
+
+.fleet-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.fleet-img-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+}
+
+.availability-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  backdrop-filter: blur(8px);
+}
+
+.availability-badge.available {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.availability-badge.booked {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.fleet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.booking-count-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.icon-btn.edit:hover { background: rgba(0, 210, 255, 0.2); border-color: var(--accent-blue); color: var(--accent-blue); }
+.icon-btn.delete:hover { background: rgba(255, 0, 85, 0.2); border-color: var(--accent-neon); color: var(--accent-neon); }
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Analytics Styles */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.trend {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.trend.positive {
+  color: #2ecc71;
+}
+
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.chart-box {
+  padding: 2rem;
+}
+
+.chart-box h3 {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.svg-chart-container {
+  height: 200px;
+  width: 100%;
+}
+
+.revenue-chart {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
