@@ -16,17 +16,21 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Handle initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    supabase.auth.getSession().then((response) => {
+      const session = response?.data?.session;
+      if (session?.user) {
         fetchUserProfile(session.user);
       } else {
         setLoading(false);
       }
+    }).catch(err => {
+      console.error("Session check error:", err);
+      setLoading(false);
     });
 
     // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+      if (session?.user) {
         fetchUserProfile(session.user);
       } else {
         setCurrentUser(null);
