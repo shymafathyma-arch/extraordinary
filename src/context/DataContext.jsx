@@ -121,12 +121,13 @@ export const DataProvider = ({ children }) => {
         const { data: carsData, error: carsError } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
         if (carsError) throw carsError;
         
-        if (carsData && carsData.length > 0) {
-          setCars(carsData);
-        } else {
-          // If DB is empty, seed it with INITIAL_CARS (optional, but good for first run)
-          setCars(INITIAL_CARS);
-        }
+        // Map snake_case to camelCase for the app
+        const mappedCars = (carsData || []).map(c => ({
+          ...c,
+          isExclusive: c.is_exclusive,
+          requiredTier: c.required_tier
+        }));
+        setCars(mappedCars);
 
         // Fetch Orders from Supabase
         const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
@@ -162,9 +163,27 @@ export const DataProvider = ({ children }) => {
     }
 
     try {
-      const { data, error } = await supabase.from('cars').insert([car]).select().single();
+      const snakeCar = {
+        brand: car.brand,
+        model: car.model,
+        year: car.year,
+        price: car.price,
+        type: car.type,
+        image: car.image,
+        specs: car.specs,
+        is_exclusive: car.isExclusive,
+        required_tier: car.requiredTier
+      };
+
+      const { data, error } = await supabase.from('cars').insert([snakeCar]).select().single();
       if (error) throw error;
-      setCars(prev => [data, ...prev]);
+      
+      const mappedData = {
+        ...data,
+        isExclusive: data.is_exclusive,
+        requiredTier: data.required_tier
+      };
+      setCars(prev => [mappedData, ...prev]);
     } catch (error) {
       console.error("Error adding car:", error);
     }
@@ -179,9 +198,27 @@ export const DataProvider = ({ children }) => {
     }
 
     try {
-      const { data, error } = await supabase.from('cars').update(updatedCar).eq('id', id).select().single();
+      const snakeCar = {
+        brand: updatedCar.brand,
+        model: updatedCar.model,
+        year: updatedCar.year,
+        price: updatedCar.price,
+        type: updatedCar.type,
+        image: updatedCar.image,
+        specs: updatedCar.specs,
+        is_exclusive: updatedCar.isExclusive,
+        required_tier: updatedCar.requiredTier
+      };
+
+      const { data, error } = await supabase.from('cars').update(snakeCar).eq('id', id).select().single();
       if (error) throw error;
-      setCars(prev => prev.map(c => c.id === id ? data : c));
+
+      const mappedData = {
+        ...data,
+        isExclusive: data.is_exclusive,
+        requiredTier: data.required_tier
+      };
+      setCars(prev => prev.map(c => c.id === id ? mappedData : c));
     } catch (error) {
       console.error("Error updating car:", error);
     }
