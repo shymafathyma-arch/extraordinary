@@ -79,11 +79,13 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
 
-    if (data.user) {
+    const user = data?.user;
+
+    if (user) {
       // Create user profile in profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert([{ id: data.user.id, email, display_name: name, role: 'customer', tier: 'VIP' }]);
+        .insert([{ id: user.id, email, display_name: name, role: 'customer', tier: 'VIP' }]);
       
       if (profileError) console.error("Error creating profile:", profileError);
     }
