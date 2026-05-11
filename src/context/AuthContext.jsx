@@ -51,11 +51,13 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
+      const role = user.email === 'admin@gmail.com' ? 'admin' : (data.role || 'customer');
+
       setCurrentUser({
         uid: user.id,
         email: user.email,
         displayName: data.display_name,
-        role: data.role || 'customer',
+        role: role,
         tier: data.tier || 'VIP',
         ...data
       });
